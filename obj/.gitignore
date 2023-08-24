@@ -1,0 +1,11 @@
+# Stuff to ignore in "obj/x86_64":
+# - apply rules from parent
+# - ignore all the ".o" files
+#
+# Note that this file exists to prevent Git
+# from removing the "obj" directory if we
+# happen to commit with no .o files present,
+# which means my build system does not have
+# to handle creating the "obj" directory.
+
+*.o
