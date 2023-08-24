@@ -1,0 +1,16 @@
+* Reference
+
+** Altair 8800
+
+https://altairclone.com
+
+[[MITS_Altair_8800_Front_Panel.jpg]]
+
+** Imsai 8080
+
+http://www.dvq.com/docs/s100/IMSAI%208080%20Manual.pdf
+
+https://grantmestrength.github.io/RetroComputerInstructionManual/imsai_front_panel.html
+
+https://www.autometer.de/unix4fun/z80pack/screenshots/imsai.html
+
