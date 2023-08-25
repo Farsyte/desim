@@ -4,10 +4,12 @@ XPROG           := desim
 
 include GNUmakefile.rules
 
-run:		${XINST}
+run::		${XINST}
 	$C ${XINST}
 
-format:
+all::		run
+
+format::
 	bin/clang-format.sh ${HSRC} ${CSRC} ${HHSRC} ${CCSRC}
 
 world::
