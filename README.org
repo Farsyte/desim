@@ -71,3 +71,98 @@ activate on the falling edge.
 Note that the list of bits of code to run on an edge is very similar
 to the Actions structure mentioned above, except that each Action
 is not removed from this list when it has run.
+
+*** Modules
+
+The actual logic that observes inputs and publishes outputs lives in
+the various Modules of any given simulation. Generally, the Module
+object will own some Edge objects, have pointers to others, and
+contain some storage areas for the simple Bus data.
+
+At a minimum, Module objects always have a name, and always have a
+method to call when all of the pointers have been set to finish up any
+initialization. Generally, most code will be run in response to a
+rising or falling Edge; as a special case, a simulation will have one
+specific instance of a module that has a "tick" method, generally the
+module that is the origin of the most important (and fastest) clock in
+the system, which is used to trigger the start of each new unit of time.
+
+*** Time
+
+Time is represented by two global variables in the system, both of
+which are of type tau_t, which is intended to be a type that can
+maintain a monotonically increasing value, without loss of precision,
+across the whole span of any useful simulation.
+
+The two variables are TAU and UNIT. TAU represents elapsed simulated
+time in some unit useful to the user -- suggested possibilities are
+floating point seconds, or 64-bit unsigned nanoseconds. UNIT is
+expected to increment once for each cycle of the fastest clock in the
+system, allowing UNIT to easily be used as an array index when working
+with signal trace data for display.
+
+*** ---
+
+** ---
+
+* Simulations being built within the framework
+
+** Farsyte 8080
+
+My initial goal is to simulate the Intel 8080A and enough of the
+surrounding support circuitry to be able to see timing charts that
+look like the timing charts in the manuals.
+
+I have *many* sources for this, ranging from scans of original
+documents from 1975 up to some more modern designs.
+
+I may use designs from http://www.s100computers.com which are very
+very readable, but I will be inclined toward maching older designs
+and older timing charts.
+
+I'm going to keep a hotlink here to a cool design:
+
+http://www.s100computers.com/My%20System%20Pages/8080%20CPU%20Board/JAIR1SCH-Production%20Rev1%5b1%5d.pdf
+
+Legend on this PDF:
+
+#+begin_src text
+
+  8080 REPLACEMENT BOARD
+  FOR ALTAIR AND IMSAI
+  S-100 COMPUTERS. 8080A CPU,
+  64K RAM, 32K ROM, I/O, UARTS
+  SPI & SD CARD FLOPPY EMULATION
+  VER 1.0 JUNE 5 2014
+  DESIGNER: JOSH BENSADON
+  REV 1
+
+#+end_src
+
+It strikes me that if I do end up simulating exactly this design,
+there may be software out there I can use to test it, beyond my
+original plan of loading up FIG-FORTH 8080 and capturing its
+calls to the CP/M BIOS.
+
+*** Module::Clk8080
+
+This module started as a direct implementation of the 8080 Clock
+Generator schematic shown in Figure 3-3 of the Intel 8080
+Microcomputer Systems User's Manual; I noticed that this circuit
+provides synchronized READY, HOLD, and /STSTB, while the 8224 Clock
+Generator and Driver provides RESET, READY. and /STSTB.
+
+Accordingly, Clk8080 provides RESET, READY, HOLD, and INT; all of
+these are expected to be stable for some time before Φ₂↓, so latching
+them on Φ₁A↑ makes sense.
+
+The test code for Clk8080 has a bit of runt logic that can generate
+SYNC suitable for testing that Clk8080 provides /STSTB correctly.
+
+I want to extend Clk8080 to handle the logic frim the 8228, which
+latches the STATUS word and generates a number of additional useful
+signals: /MEMR /MEMW /IOR /IOW /BUSEN /INTA
+
+Having strict Clk8224 and Ctl8228 modules handy might also be a good
+idea depending on what CPU boards I might want to simulate.
+

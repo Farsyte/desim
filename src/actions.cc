@@ -115,7 +115,7 @@ void Actions::bist()
     mt = min(mt, check_timing());
     mt = min(mt, check_timing());
 
-    // printf("Actions: %.1f ns (wall)\n", mt);
+    fprintf(stderr, "Actions: %.1f ns (wall)\n", mt);
 
     // Currently this averages ~90-100ns per service call
     // on my "fragbox" (AMD Ryzen 9 5950x, 2.2 to 4.6 GHz).

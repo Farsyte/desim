@@ -1,1 +1,3 @@
-*.observed
+*.obs.log
+*.cmp.log
+

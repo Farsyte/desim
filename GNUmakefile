@@ -7,29 +7,31 @@ include GNUmakefile.rules
 run::		${XINST}
 	$C ${XINST}
 
-XOBS		:= ${XPROG:%=${TDIR}%.observed}
-XEXP		:= ${XPROG:%=${TDIR}%.expected}
+XOBS		:= ${XPROG:%=${TDIR}%.obs.log}
+XEXP		:= ${XPROG:%=${TDIR}%.exp.log}
+XCMP		:= ${XPROG:%=${TDIR}%.cmp.log}
 
-${XOBS}:	${XINST}
-	$C ${XINST} > ${XOBS}
-	$E output saved in ${XOBS}
+${TDIR}%.cmp.log:	${BDIR}%
+	$E '$* ...'
+	$C ${BDIR}$* > ${TDIR}$*.obs.log
+	$Q test -s ${TDIR}$*.exp.log || echo saving output of $* as reference run
+	$Q test -s ${TDIR}$*.exp.log || cp ${TDIR}$*.obs.log ${TDIR}$*.exp.log
+	$E 'diff ...'
+	$C diff ${TDIR}$*.exp.log ${TDIR}$*.obs.log | tee $@
 
-cmp::		${XOBS}
-	$Q test -s ${XEXP} || echo this is now the reference run.
-	$Q test -s ${XEXP} || cp ${XOBS} ${XEXP}
-	$E comparing with ${XEXP} ...
-	$C diff ${XEXP} ${XOBS}
-	$E comparing with ${XEXP} ... OK.
+cmp::			${XCMP}
 
-clean::					; ${RF} ${XOBS}
-
+clean::
+	${RF} ${TDIR}$*.obs.log
+	${RF} ${TDIR}$*.cmp.log
 
 format::
+	$E 'clang-format ...'
 	$C bin/clang-format.sh ${HSRC} ${CSRC} ${HHSRC} ${CCSRC}
 
-all::
-	$M cmp
+all::		cmp
 
 world::
 	$M format
+	$C ${RF} ${XCMP} ${XOBS}
 	$M cmp

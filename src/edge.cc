@@ -167,7 +167,7 @@ void Edge::bist()
         t1 = t2;
     if (t1 > t3)
         t1 = t3;
-    // printf("Edge: %.1f ns (wall)\n", t1);
+    fprintf(stderr, "Edge: %.1f ns (wall)\n", t1);
 
     // Currently this averages ~18-20ns per service call
     // on my "fragbox" (AMD Ryzen 9 5950x, 2.2 to 4.6 GHz).
