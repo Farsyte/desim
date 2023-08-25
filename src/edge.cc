@@ -28,6 +28,16 @@ void Edge::lo()
     }
 }
 
+void Edge::set(unsigned u)
+{
+    return u ? hi() : lo();
+}
+
+void Edge::inv(unsigned u)
+{
+    return u ? lo() : hi();
+}
+
 void Edge::rise_cb(Action f)
 {
     rise.push_back(f);
@@ -85,6 +95,11 @@ static void check_order()
 static unsigned max_count = 1000;
 static unsigned call_count = 0;
 
+void inc_count()
+{
+    ++call_count;
+}
+
 static double check_timing()
 {
     // now do a timing test where we have one signal that
@@ -97,8 +112,8 @@ static double check_timing()
     // each of which just increments call_count.
 
     for (int i = 0; i < 12; ++i) {
-        e.rise_cb(ACTION(++call_count));
-        e.fall_cb(ACTION(++call_count));
+        Edge_RISE(&e, inc_count);
+        Edge_FALL(&e, inc_count);
     }
 
     Timer t;
@@ -152,7 +167,7 @@ void Edge::bist()
         t1 = t2;
     if (t1 > t3)
         t1 = t3;
-    printf("Edge: %.1f ns (wall)\n", t1);
+    // printf("Edge: %.1f ns (wall)\n", t1);
 
     // Currently this averages ~18-20ns per service call
     // on my "fragbox" (AMD Ryzen 9 5950x, 2.2 to 4.6 GHz).

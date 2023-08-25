@@ -1,4 +1,5 @@
 #include "actions.hh"
+#include "clk8080.hh"
 #include "edge.hh"
 
 // starting point for execution of desym
@@ -18,6 +19,7 @@ int main(int argc, char** argv)
 
     Actions::bist();
     Edge::bist();
+    Clk8080::bist();
 
     return 0;
 }

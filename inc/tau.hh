@@ -4,6 +4,8 @@
 // simulated time. It must be possible for values of this
 // type to take on strictly ascending values as the
 // simulation moves forward through discrete time steps.
+//
+// The value of a TAU is a number of nanoseconds.
 
 typedef unsigned long tau_t;
 
@@ -13,3 +15,10 @@ typedef unsigned long tau_t;
 // constant while evaluating the simulation logic for each time.
 
 extern tau_t TAU;
+
+// The UNIT global of type unit_t represents the integer count
+// of some basic time unit in the simulation that can be used
+// neatly in data plotting code. It increments once for each
+// cycle of the primary oscillator.
+
+extern tau_t UNIT;
