@@ -1,5 +1,17 @@
 #include "actions.hh"
 
+void Actions::exec()
+{
+    while (!empty()) {
+        front()();
+        pop();
+    }
+}
+
+// === === === === === === === === === === === === === === === ===
+//                         TESTING SUPPORT
+// === === === === === === === === === === === === === === === ===
+
 #include <cassert>
 #include <cstdio> // c++ <streams> are too painful for words.
 #include <iostream> // but sometimes I have to use them
@@ -14,19 +26,16 @@ static void check_order()
 
     unsigned t = 0;
 
-    // use TAU to verify we are running in FIFO order,
+    // use "t" to verify we are running in FIFO order,
     // in case the implementation changes to LIFO order.
     // We might do LIFO but do not do it accidentally.
 
-    a.push([&] { rc[0] ++; assert(t == 1); });
-    a.push([&] { rc[1] ++; assert(t == 2); });
-    a.push([&] { rc[2] ++; assert(t == 3); });
-    a.push([&] { rc[3] ++; assert(t == 4); });
+    a.push([&] { t++; rc[0] ++; assert(t == 1); });
+    a.push([&] { t++; rc[1] ++; assert(t == 2); });
+    a.push([&] { t++; rc[2] ++; assert(t == 3); });
+    a.push([&] { t++; rc[3] ++; assert(t == 4); });
 
-    while (!a.empty()) {
-        ++t;
-        a.exec();
-    }
+    a.exec();
 
     // verify each lambda was called once.
     assert(rc[0] == 1);
@@ -35,8 +44,9 @@ static void check_order()
     assert(rc[3] == 1);
 }
 
-unsigned call_count = 0;
-unsigned max_count = 0;
+static unsigned call_count = 0;
+static unsigned max_count = 0;
+
 static void cycle(Actions* a)
 {
     ++call_count;
