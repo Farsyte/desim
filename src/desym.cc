@@ -1,4 +1,5 @@
 #include "actions.hh"
+#include "edge.hh"
 
 // starting point for execution of desym
 
@@ -16,6 +17,7 @@ int main(int argc, char** argv)
     // classes that we know have them.
 
     Actions::bist();
+    Edge::bist();
 
     return 0;
 }
