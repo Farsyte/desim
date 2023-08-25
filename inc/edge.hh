@@ -1,3 +1,5 @@
+#pragma once
+
 #include "action.hh"
 #include "bit.hh"
 #include <vector>
@@ -26,6 +28,12 @@ public:
     // the actions attached to the falling edge are run.
     void lo();
 
+    // Edge::set(u) calls hi() if u is nonzero, and lo() if u is 0.
+    void set(unsigned u);
+
+    // Edge::inv(u) calls lo() if u is nonzero, and hi() if u is 0.
+    void inv(unsigned u);
+
     // Edge::rise_cb(a) adds the action a to the list of actions to
     // run when the value transitions from false to true.
     void rise_cb(Action a);
@@ -38,3 +46,11 @@ public:
     // throwing an "assertion failure" if something is wrong.
     static void bist();
 };
+
+// Edge_RISE(e,fn): convenience macro, call fn when e rises
+// where fn is the name of the function and e points to the Edge.
+#define Edge_RISE(e, fn) ((e)->rise_cb(ACTION(fn())))
+
+// Edge_FALL(e,fn): convenience macro, call fn when e falls
+// where fn is the name of the function and e points to the Edge.
+#define Edge_FALL(e, fn) ((e)->fall_cb(ACTION(fn())))

@@ -55,6 +55,7 @@ SDIR            = ${ABSDIR}src/
 ODIR            = ${ABSDIR}obj/
 LDIR            = ${ABSDIR}lib/
 BDIR            = ${ABSDIR}bin/
+TDIR            = ${ABSDIR}test/
 
 # Each GNUmakefile should set LIBS to the names of
 # the personal libraries to link. Example:
