@@ -7,6 +7,13 @@ include GNUmakefile.rules
 run::		${XINST}
 	$C ${XINST}
 
+# the target I want to repeatedly watch
+rep::		${XINST}
+	$C ${BDIR}${XPROG} > ${TDIR}${XPROG}.obs.log
+	$C diff ${TDIR}${XPROG}.exp.log ${TDIR}${XPROG}.obs.log | tee ${TDIR}${XPROG}.cmp.log
+	$E ${XPROG} output looks OK
+	$C git status
+
 XOBS		:= ${XPROG:%=${TDIR}%.obs.log}
 XEXP		:= ${XPROG:%=${TDIR}%.exp.log}
 XCMP		:= ${XPROG:%=${TDIR}%.cmp.log}

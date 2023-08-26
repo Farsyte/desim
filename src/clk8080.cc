@@ -16,6 +16,29 @@ protected:
     tau_t tau_next;
     unsigned tau_frac;
     void phi1a_latch();
+    void ststb_latch();
+    void status_logic();
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+    union {
+        struct {
+#pragma GCC diagnostic pop
+            // bits from low to high, on little-endian simulation hosts.
+            unsigned sINTA : 1; // Interrupt Acknowledge
+            unsigned sWO : 1; // Write Output (active low)
+            unsigned sSTACK : 1; // Stack Memory Access
+            unsigned sHLTA : 1; // Halt Acknowledge
+            unsigned sOUT : 1; // Output Write
+            unsigned sM1 : 1; // Instruction Fetch (including Interrupt Service)
+            unsigned sINP : 1; // Input Read
+            unsigned sMEMR : 1; // Meory Read
+        };
+        Byte sBYTE;
+    };
+
+    void status_update_end_reads();
+    void status_update_using_wr();
 };
 
 // Initialize the implementation of the
@@ -36,6 +59,11 @@ Clk8080impl::Clk8080impl(const char* name)
     , tau_frac(0)
 {
     Edge_RISE(&PHI1A, phi1a_latch);
+    Edge_FALL(&STSTB, ststb_latch);
+    Edge_RISE(WR, status_update_using_wr);
+    Edge_FALL(WR, status_update_using_wr);
+    Edge_RISE(DBIN, status_update_end_reads);
+    Edge_FALL(DBIN, status_update_end_reads);
 }
 
 void Clk8080impl::linked()
@@ -45,6 +73,9 @@ void Clk8080impl::linked()
     assert(DMARQ);
     assert(INTRQ);
     assert(SYNC);
+    assert(DBIN);
+    assert(HLDA);
+    assert(D);
 }
 
 //      phase       123456789
@@ -60,6 +91,34 @@ void Clk8080impl::phi1a_latch()
     HOLD.set(DMARQ->get());
     INT.set(INTRQ->get());
 }
+
+void Clk8080impl::status_update_using_wr() {
+    if (WO->get()) {
+        MEMW.hi();
+        IOW.hi();
+    } else {
+        MEMW.inv(!sWO && !sOUT);
+        IOW.inv(sOUT);
+    }
+}
+
+void Clk8080impl::status_update_end_reads() {
+    MEMR.hi();
+    IOR.hi();
+    INTA.hi();
+}
+
+void Clk8080impl::ststb_latch()
+{
+    sBYTE = *D;
+
+    status_update_using_wr();
+
+    MEMR.inv(sMEMR && !sHLTA);
+    IOR.inv(sINP);
+    INTA.inv(sINTA);
+}
+
 
 tau_t Clk8080impl::tick()
 {
@@ -111,6 +170,7 @@ Clk8080::Clk8080(const char* name)
     , RESET(1)
 {
 }
+
 Clk8080::~Clk8080() { }
 
 // === === === === === === === === === === === === === === === ===
@@ -139,12 +199,24 @@ Clk8080::~Clk8080() { }
 // This is just enough logic to generate a SYNC pulse
 // that looks like it came from the 8080.
 
+#define STATUS_FETCH    0b10100010
+#define STATUS_MREAD    0b10000010
+#define STATUS_MWRITE   0b00000000
+#define STATUS_SREAD    0b10000110
+#define STATUS_SWRITE   0b00000100
+#define STATUS_INPUTRD  0b01000010
+#define STATUS_OUTPUTWR 0b00010000
+#define STATUS_INTACK   0b00100011
+#define STATUS_HALTACK  0b10001010
+#define STATUS_INTACKW  0b00101011
+
 class Sync8080 : Module {
 public:
     Sync8080(const char* name)
         : Module(name)
         , next_state(0)
     {
+        D = STATUS_FETCH;
         SYNC.lo();
     }
 
@@ -152,6 +224,8 @@ public:
     Edge* RESET;
     Edge* READY;
     Edge SYNC;
+
+    Byte D;
 
     virtual void linked()
     {
@@ -225,6 +299,7 @@ static void phi1_rise()
     tD3.start(now);
     tPhi1.start(now);
 }
+
 static void phi1_fall()
 {
     double now = TAU;
@@ -233,6 +308,7 @@ static void phi1_fall()
     tPhi1.record(now);
     tD1.start(now);
 }
+
 static void phi2_rise()
 {
     double now = TAU;
@@ -242,6 +318,7 @@ static void phi2_rise()
     tD3.record(now);
     tPhi2.start(now);
 }
+
 static void phi2_fall()
 {
     double now = TAU;
@@ -295,6 +372,7 @@ void Clk8080::bist()
     clk.DMARQ = &DMARQ;
     clk.INTRQ = &INTRQ;
     clk.SYNC = &cpu.SYNC;
+    clk.D = &cpu.D;
 
     cpu.PHI2 = &clk.PHI2;
     cpu.RESET = &clk.RESET;
@@ -450,3 +528,22 @@ void Clk8080::bist()
 
     printf("clk_asserts passed\n");
 }
+
+// /MEMR low if WO high, MEMR high, HLTA low
+// /MEMW low if WO low,  MEMR low,  OUT high
+
+// STATUS_FETCH    0b10100010 -> /MEMR
+// STATUS_MREAD    0b10000010 -> /MEMR
+// STATUS_SREAD    0b10000110 -> /MEMR
+
+// STATUS_MWRITE   0b00000000 -> /MEMW
+// STATUS_SWRITE   0b00000100 -> /MEMW
+
+// STATUS_INPUTRD  0b01000010 -> /IOR
+
+// STATUS_OUTPUTWR 0b00010000 -> /IOW
+
+// STATUS_HALTACK  0b10001010 -> (none)
+
+// STATUS_INTACK   0b00100011 -> /INTA
+// STATUS_INTACKW  0b00101011 -> /INTA
