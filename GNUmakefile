@@ -7,6 +7,13 @@ include GNUmakefile.rules
 run::		${XINST}
 	$C ${XINST}
 
+# the target I want to repeatedly watch
+rep::		${XINST}
+	$C ${BDIR}${XPROG} > ${TDIR}${XPROG}.obs.log
+	$C diff ${TDIR}${XPROG}.exp.log ${TDIR}${XPROG}.obs.log | tee ${TDIR}${XPROG}.cmp.log
+	$E ${XPROG} output looks OK
+	$C git status
+
 XOBS		:= ${XPROG:%=${TDIR}%.obs.log}
 XEXP		:= ${XPROG:%=${TDIR}%.exp.log}
 XCMP		:= ${XPROG:%=${TDIR}%.cmp.log}
@@ -19,19 +26,21 @@ ${TDIR}%.cmp.log:	${BDIR}%
 	$E 'diff ...'
 	$C diff ${TDIR}$*.exp.log ${TDIR}$*.obs.log | tee $@
 
-cmp::			${XCMP}
+cmp::
+	${RF} ${XCMP}
+	$M ${XCMP}
 
 clean::
 	${RF} ${TDIR}$*.obs.log
 	${RF} ${TDIR}$*.cmp.log
 
-format::
+format::		${XINST}
+	make -k ${XINST} || exit 1
 	$E 'clang-format ...'
 	$C bin/clang-format.sh ${HSRC} ${CSRC} ${HHSRC} ${CCSRC}
 
 all::		cmp
 
 world::
-	$M format
-	$C ${RF} ${XCMP} ${XOBS}
+	$M clean
 	$M cmp

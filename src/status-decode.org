@@ -1,0 +1,105 @@
+
+
+#+tblname: status_bits
+| type | sMEMR | sINP | sM1 | sOUT | sHLTA | sSTACK | sWO | sINTA |
+|------+-------+------+-----+------+-------+--------+-----+-------+
+|    1 |     1 |    0 |   1 |    0 |     0 |      0 |   1 |     0 |
+|    2 |     1 |    0 |   0 |    0 |     0 |      0 |   1 |     0 |
+|    3 |     0 |    0 |   0 |    0 |     0 |      0 |   0 |     0 |
+|    4 |     1 |    0 |   0 |    0 |     0 |      1 |   1 |     0 |
+|    5 |     0 |    0 |   0 |    0 |     0 |      1 |   0 |     0 |
+|    6 |     0 |    1 |   0 |    0 |     0 |      0 |   1 |     0 |
+|    7 |     0 |    0 |   0 |    1 |     0 |      0 |   0 |     0 |
+|    8 |     0 |    0 |   1 |    0 |     0 |      0 |   1 |     1 |
+|    9 |     1 |    0 |   0 |    0 |     1 |      0 |   1 |     0 |
+|   10 |     0 |    0 |   1 |    0 |     1 |      0 |   1 |     1 |
+
+how does HLDA play into the control logic?
+
+#+tblname: type_expect
+|  1 | memr |
+|  2 | memr |
+|  3 | memw |
+|  4 | memr |
+|  5 | memw |
+|  6 | ior  |
+|  7 | iow  |
+|  8 | inta |
+|  9 | none |
+| 10 | inta |
+
+| status     | type | cycle type      |
+|------------+------+-----------------|
+| 0b10100010 |    1 | STATUS_FETCH    |
+| 0b10000010 |    1 | STATUS_MREAD    |
+| 0b00000000 |    2 | STATUS_MWRITE   |
+| 0b10000110 |    1 | STATUS_SREAD    |
+| 0b00000100 |    2 | STATUS_SWRITE   |
+| 0b01000010 |    3 | STATUS_INPUTRD  |
+| 0b00010000 |    4 | STATUS_OUTPUTWR |
+| 0b00100011 |    5 | STATUS_INTACK   |
+| 0b10001010 |    0 | STATUS_HALTACK  |
+| 0b00101011 |    5 | STATUS_INTACKW  |
+
+for each type, we want to know the minimum set of bits
+which always have the same value when type is that value,
+but have a different value when the type is different.
+
+pDBIN: changes on rising PHI2, not active while SYNC active.
+pWR: changes on rising PHI1, not active while SYNC active.
+
+8228:
+- sample status on /STSTB falling edge
+
+- note that DBIN is still low
+- /INTA /IOR /MEMR fall when STATUS sampled not when DBIN rises ?!
+- if HLDA rises before DBIN falls, INTA IOR MEMR will also rise
+
+- at some point, /WR falls
+- after /WR falls, /IOW /MEMW can fall
+- when /WR rises, /IOW /MEMW rise  
+
+
+#+begin_src python :results output :var data=status_bits :var exp=type_expect
+
+  exp_of_ty = ['?' for i in range(11)]
+  for i,ty in exp:
+      exp_of_ty[i] = ty;
+
+  # todo: take DBIN into account
+  # todo: take WR into account
+  for typ,sMEMR,sINP,sM1,sOUT,sHLTA,sSTACK,sWO,sINTA in data:
+      is_memr = sMEMR and not sHLTA
+      is_memw = not sWO and not sOUT
+      is_ior = sINP
+      is_iow = sOUT
+      is_inta = sINTA
+      print(f'{typ:2},{sMEMR}{sINP}{sM1}{sOUT}{sHLTA}{sSTACK}{sWO}{sINTA}', end='')
+      print(f' {exp_of_ty[typ]:5}', end='')
+      if is_memr:
+          print(f' /MEMR', end='');
+      if is_memw:
+          print(f' /MEMW', end='');
+      if is_ior:
+          print(f' /IOR', end='');
+      if is_iow:
+          print(f' /IOW', end='');
+      if is_inta:
+          print(f' /INTA', end='');
+      print(f'')
+      pass
+#+end_src
+
+#+RESULTS:
+#+begin_example
+ 1,10100010 memr  /MEMR
+ 2,10000010 memr  /MEMR
+ 3,00000000 memw  /MEMW
+ 4,10000110 memr  /MEMR
+ 5,00000100 memw  /MEMW
+ 6,01000010 ior   /IOR
+ 7,00010000 iow   /IOW
+ 8,00100011 inta  /INTA
+ 9,10001010 none 
+10,00101011 inta  /INTA
+#+end_example

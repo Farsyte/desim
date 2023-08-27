@@ -5,11 +5,11 @@ using std::chrono::steady_clock;
 Timer::Timer()
 {
     _start = steady_clock::now();
-    _end = {};
+    _end   = {};
 }
 void Timer::tick()
 {
-    _end = TP {};
+    _end   = TP {};
     _start = steady_clock::now();
 }
 void Timer::tock() { _end = steady_clock::now(); }

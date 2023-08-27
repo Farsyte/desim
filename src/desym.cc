@@ -1,8 +1,8 @@
-#include "actions.hh"
-#include "clk8080.hh"
-#include "edge.hh"
-
 // starting point for execution of desym
+
+#include "actions.hh"
+#include "edge.hh"
+#include "clk8080.hh"
 
 int main(int argc, char** argv)
 {
