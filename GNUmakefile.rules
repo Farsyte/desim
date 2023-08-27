@@ -108,7 +108,10 @@ XIFLAGS         = ${XIDIRS:%=-I%}
 # Set the compiler debug and optimizer level.
 # For now, enable debug and shut off the optimizer
 # so I can see proper backtraces.
-DBGOPT          = -g -O0
+DBG             = -g
+OPT             = -O0
+# OPT             = -Ofast
+DBGOPT          = $(DBG) $(OPT)
 
 # Set the compiler warning flags.
 WFLAGS		= -W -Wall -Wextra -Wpedantic
@@ -141,9 +144,7 @@ all::                                   ; ${NOOP}
 clean::                                 ; ${NOOP}
 
 all::			default
-world::
-	$M clean
-	$M all
+world::					; ${NOOP}
 
 # include any and all dependency files. This starts empty with
 # a fresh (or cleaned) area, but adds dependencies so we can

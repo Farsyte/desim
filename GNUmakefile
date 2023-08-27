@@ -26,19 +26,21 @@ ${TDIR}%.cmp.log:	${BDIR}%
 	$E 'diff ...'
 	$C diff ${TDIR}$*.exp.log ${TDIR}$*.obs.log | tee $@
 
-cmp::			${XCMP}
+cmp::
+	${RF} ${XCMP}
+	$M ${XCMP}
 
 clean::
 	${RF} ${TDIR}$*.obs.log
 	${RF} ${TDIR}$*.cmp.log
 
-format::
+format::		${XINST}
+	make -k ${XINST} || exit 1
 	$E 'clang-format ...'
 	$C bin/clang-format.sh ${HSRC} ${CSRC} ${HHSRC} ${CCSRC}
 
 all::		cmp
 
 world::
-	$M format
-	$C ${RF} ${XCMP} ${XOBS}
+	$M clean
 	$M cmp
