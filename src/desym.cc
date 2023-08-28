@@ -1,8 +1,10 @@
 // starting point for execution of desym
 
 #include "actions.hh"
-#include "edge.hh"
 #include "clk8080.hh"
+#include "cpu8080.hh"
+#include "edge.hh"
+#include "sys8080.hh"
 
 int main(int argc, char** argv)
 {
@@ -20,6 +22,8 @@ int main(int argc, char** argv)
     Actions::bist();
     Edge::bist();
     Clk8080::bist();
+    Cpu8080::bist();
+    Sys8080::bist();
 
     return 0;
 }

@@ -24,14 +24,14 @@ public:
     Edge WAIT; // 8080 pin 24 output (to 8224), is this RDYIN?
 
     // Output signals to the 8228 system controller and bus driver
-    Edge WR;   // 8080 pin 18 output (to 8228) write strobe (active low)
     Edge DBIN; // 8080 pin 17 output (to 8228) data bus direction
+    Edge WR;   // 8080 pin 18 output (to 8228) write strobe (active low)
     Edge HLDA; // 8080 pin 21 output (to 8228) hold acknowledge
 
     // Connections to the "outside world"
-    Edge HOLD; // 8080 pin 13 input (from world) System DMA Request
-    Edge INT;  // 8080 pin 14 input (from world) interrupt request
-    Edge INTE; // 8080 pin 16 output (to world) Interrupt Enable
+    Edge* HOLD; // 8080 pin 13 input (from world) System DMA Request
+    Edge* INT;  // 8080 pin 14 input (from world) interrupt request
+    Edge  INTE; // 8080 pin 16 output (to world) Interrupt Enable
 
     virtual void linked() = 0;
 

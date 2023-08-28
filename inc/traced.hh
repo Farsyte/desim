@@ -7,7 +7,7 @@ class Traced {
 public:
     Traced(const char* name, Edge& sig, bool active_low = false);
 
-    const char *name;
+    const char* name;
     std::string trace;
     char        valc;
     const char* vals;

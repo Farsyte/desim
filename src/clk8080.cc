@@ -2,11 +2,11 @@
 //#include "edge.hh"
 //#include "util.hh"
 
-#include "link_assert.hh"
 #include "8080_status.hh"
+#include "link_assert.hh"
 
 #include <cassert>
-//#include <cstdio>
+#include <cstdio>
 //#include <cstdlib>
 
 class Clk8080impl : public Clk8080 {
@@ -85,6 +85,8 @@ Clk8080impl::Clk8080impl(const char* name)
 //#include "link_assert.hh"
 void Clk8080impl::linked()
 {
+    LINK_ASSERT(OSC); // system timebase
+
     LINK_ASSERT(RESIN); // ACTIVE LOW input: unsynchronized reset request
     LINK_ASSERT(RDYIN); // input: unsynchronized ready request
     LINK_ASSERT(DMARQ); // input: unsynchronized DMA request
@@ -181,38 +183,41 @@ void Clk8080impl::linked()
         IOW.hi();
     });
 
+    Edge_RISE(OSC, on_osc_rise);
+}
 
-    Edge_RISE(OSC, [&] {
-        static unsigned phase      = 0;
-        static unsigned next_phase = 1;
-        phase                      = next_phase++;
+void Clk8080impl::on_osc_rise()
+{
+    static unsigned phase      = 0;
+    static unsigned next_phase = 1;
 
-        switch (phase) {
-        case 1:
-            PHI1.hi();
-            break;
-        case 2:
-            break;
-        case 3:
-            PHI1.lo();
-            break;
-        case 4:
-            PHI2.hi();
-            break;
-        case 5:
-            PHI1A.hi();
-            break;
-        case 6:
-            break;
-        case 7:
-            break;
-        case 8:
-            PHI2.lo();
-            break;
-        case 9:
-            PHI1A.lo();
-            next_phase = 1;
-            break;
-        }
-    });
+    phase = next_phase++;
+
+    switch (phase) {
+    case 1:
+        PHI1.hi();
+        break;
+    case 2:
+        break;
+    case 3:
+        PHI1.lo();
+        break;
+    case 4:
+        PHI2.hi();
+        break;
+    case 5:
+        PHI1A.hi();
+        break;
+    case 6:
+        break;
+    case 7:
+        break;
+    case 8:
+        PHI2.lo();
+        break;
+    case 9:
+        PHI1A.lo();
+        next_phase = 1;
+        break;
+    }
 }

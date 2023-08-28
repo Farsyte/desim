@@ -1,7 +1,7 @@
 #include "actions.hh"
 
 #include <cassert>
-#include <cstdio>   // c++ <streams> are too painful for words.
+#include <cstdio> // c++ <streams> are too painful for words.
 //#include <iostream> // but sometimes I have to use them
 
 #include "timer.hh"

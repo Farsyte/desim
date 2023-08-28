@@ -30,6 +30,9 @@ cmp::
 	${RF} ${XCMP}
 	$M ${XCMP}
 
+gdb::			${XINST}
+	gdb ${XINST}
+
 clean::
 	${RF} ${TDIR}$*.obs.log
 	${RF} ${TDIR}$*.cmp.log
