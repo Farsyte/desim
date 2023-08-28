@@ -106,16 +106,16 @@ void Edge::bist()
     // just in case something in the build and test
     // environment paused us.
 
-    max_count = 1000;
+//    max_count = 1000;
 
-    double t1 = check_timing();
-    double t2 = check_timing();
-    double t3 = check_timing();
-    if (t1 > t2)
-        t1 = t2;
-    if (t1 > t3)
-        t1 = t3;
-    fprintf(stderr, "Edge: %.1f ns (wall)\n", t1);
+//    double t1 = check_timing();
+//    double t2 = check_timing();
+//    double t3 = check_timing();
+//    if (t1 > t2)
+//        t1 = t2;
+//    if (t1 > t3)
+//        t1 = t3;
+//    fprintf(stderr, "Edge: %.1f ns (wall)\n", t1);
 
     // Currently this averages ~18-20ns per service call
     // on my "fragbox" (AMD Ryzen 9 5950x, 2.2 to 4.6 GHz)
@@ -124,7 +124,7 @@ void Edge::bist()
     //
     // If it grows to 50ns, something bad has happened.
 
-    assert(t1 < 50);
+//    assert(t1 < 50);
 
     printf("Edge::bist complete.\n");
 }

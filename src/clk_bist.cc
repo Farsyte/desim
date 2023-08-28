@@ -183,12 +183,12 @@ void Clk8080::bist()
         UNIT++;
     };
 
-    std::function<void(int)> tick_to = [&](tau_t end_tau) {
+    std::function<void(tau_t)> tick_to = [&](tau_t end_tau) {
         while (TAU < end_tau)
             tick();
     };
 
-    std::function<void(int)> tick_us = [&](double us) {
+    std::function<void(double)> tick_us = [&](double us) {
         tick_to(TAU + (int)(us * 1000));
     };
 
@@ -283,14 +283,14 @@ void Clk8080::bist()
     // page_title = "power-on reset";
     // Record a bit of time in power-on state.
     tick_us(2.0);
-    assert(!clk.RESET.get());
+    assert(clk.RESET.get());
     // manual pagebreak until SYNC pulses are running
     // page_breaks.push_back(PageBreak(UNIT, page_title));
 
     tick_us(1.0);
-    assert(!clk.RESET.get());
+    assert(clk.RESET.get());
 
-    // Release /RESIN, to verify /RESET timing.
+    // Release /RESIN, to verify RESET timing.
     RESIN.hi();
     // page_title = "coming out of reset";
     tick_to_end_of_machine_cycle();
@@ -319,6 +319,7 @@ void Clk8080::bist()
     Edge_FALL(&INT, int_change);
 
     std::vector<Traced*> traces;
+
     struct PageBreak {
         PageBreak(tau_t t, const char* s)
             : t(t)
@@ -353,13 +354,13 @@ void Clk8080::bist()
     traces.push_back(new Traced("PHI1A", PHI1A));
 
     traces.push_back(new Traced("RESIN", RESIN, true));
-    traces.push_back(new Traced("RESET", RESET, true));
+    traces.push_back(new Traced("RESET", RESET));
 
     traces.push_back(new Traced("SYNC", SYNC));
     traces.push_back(new Traced("STSTB", STSTB, true));
 
-    traces.push_back(new Traced("RDYIN", RDYIN));
-    traces.push_back(new Traced("READY", READY));
+    traces.push_back(new Traced("RDYIN", RDYIN, true));
+    traces.push_back(new Traced("READY", READY, true));
 
     traces.push_back(new Traced("DMARQ", DMARQ));
     traces.push_back(new Traced("HOLD", HOLD));
@@ -403,10 +404,9 @@ void Clk8080::bist()
 
     // check timing of RDYIN->READY
 
-    page_title = "check /RDYIN ==> /READY timing";
-    RDYIN.hi();
+    page_title = "check RDYIN ==> READY timing";
     tick_us(1.0);
-    RDYIN.lo();
+    RDYIN.hi();
     tick_us(1.0);
 
     // check timing of DMARQ->HOLD

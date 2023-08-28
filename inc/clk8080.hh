@@ -24,9 +24,9 @@ public:
     // These output signals carry the values of the signals above
     // that were observed on the last PHI1A rising edge.
     Edge RESET; // output: synchronized RESET (latched on PHI2)
-    Edge READY; // output: synchronized RESET (latched on PHI2)
+    Edge READY; // output: synchronized READY (latched on PHI2)
     Edge HOLD;  // output: synchronized HOLD for DMA
-    Edge INT;   // output: synchronized HOLD for DMA
+    Edge INT;   // output: synchronized INT
 
     Edge* SYNC;  // input: start of machine cycle
     Edge  STSTB; // output: status byte strobe

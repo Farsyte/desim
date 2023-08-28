@@ -44,6 +44,7 @@ Clk8080* Clk8080::create(const char* name)
 
 Clk8080::Clk8080(const char* name)
     : Module(name)
+    , RESET(1)
     , MEMR(1)
     , MEMW(1)
     , IOR(1)
@@ -70,18 +71,6 @@ Clk8080impl::Clk8080impl(const char* name)
 {
 }
 
-#define STATUS_RESET    0b00000010
-#define STATUS_FETCH    0b10100010
-#define STATUS_MREAD    0b10000010
-#define STATUS_MWRITE   0b00000000
-#define STATUS_SREAD    0b10000110
-#define STATUS_SWRITE   0b00000100
-#define STATUS_INPUTRD  0b01000010
-#define STATUS_OUTPUTWR 0b00010000
-#define STATUS_INTACK   0b00100011
-#define STATUS_HALTACK  0b10001010
-#define STATUS_INTACKW  0b00101011
-
 //#include "link_assert.hh"
 void Clk8080impl::linked()
 {
@@ -98,36 +87,33 @@ void Clk8080impl::linked()
     LINK_ASSERT(WR);   // input: WR from 8080
     LINK_ASSERT(HLDA); // input: HLDA from 8080
 
-    assert(!RESIN->get());
-    assert(!RDYIN->get());
-    assert(!RESET.get());
-    assert(!READY.get());
-
-    assert(WR->get());
-
     // Require that signals are in their proper initial states.
 
     assert(!RESIN->get());
-    assert(!RESET.get());
+    assert(!RDYIN->get());
+    assert(RESET.get());
+    assert(!READY.get());
+    assert(!STSTB.get());
 
-    RESET.rise_cb([=] {
-        STSTB.hi();
-    });
+    assert(WR->get());
+
+    RESET.rise_cb([=] {STSTB.lo();});
+    RESET.fall_cb([=] {STSTB.hi();});
 
     PHI1A.rise_cb([=] {
-        RESET.inv(!RESIN->get());
+        RESET.set(!RESIN->get());
         READY.set(RDYIN->get());
         HOLD.set(DMARQ->get());
         INT.set(INTRQ->get());
 
-        if (!RESET.get())
+        if (RESET.get())
             STSTB.lo();
         else if (SYNC->get())
             STSTB.lo();
     });
 
     PHI1A.fall_cb([=] {
-        if (RESET.get())
+        if (!RESET.get())
             STSTB.hi();
     });
 
