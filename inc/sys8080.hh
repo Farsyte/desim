@@ -22,8 +22,8 @@ public:
     Edge DMARQ;
     Edge INTRQ;
 
-    Clk8080 &clk;
-    Cpu8080 &cpu;
+    Clk8080& clk;
+    Cpu8080& cpu;
 
     virtual void linked() = 0;
 

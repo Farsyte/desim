@@ -9,8 +9,7 @@
 #define STATUS_MEMR  0b10000000; // Memory Read
 
 // Aggregate Status Byte values for each machine cycle type
-#define STATUS_RESET    0b00000010 // ()
-
+#define STATUS_RESET    0b00000010 // (0) can be used during RESET
 #define STATUS_FETCH    0b10100010 // (1) MEMR M1
 #define STATUS_MREAD    0b10000010 // (2) MEMR
 #define STATUS_MWRITE   0b00000000 // (3)              /WO

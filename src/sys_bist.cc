@@ -1,9 +1,11 @@
 #include "sys8080.hh"
 
+#include <cstdio>
+
 #include "timer.hh"
 #include "traced.hh"
 
-#include <cstdio>
+#include "stub.hh"
 
 //#include "verify_elapsed_time.hh"
 //#include <iostream>
@@ -20,11 +22,40 @@
 
 // static VerifyElapsedTime p1("name_of_timing_constraint", min_ns, max_ns); // which edge to which edge
 
+unsigned      call_count = 100;
+static double check_timing(Action a)
+{
+    Timer t;
+
+    t.tick();
+    for (unsigned rep = 0; rep < call_count; ++rep)
+        a();
+    t.tock();
+
+    unsigned long us_total = t.microseconds();
+    if (us_total < 100) {
+        call_count *= 10;
+        return check_timing(a);
+    }
+    if (us_total < 100000) {
+        call_count = (call_count * 200000) / us_total;
+        return check_timing(a);
+    }
+
+    double ns_avg = us_total * 1000.0 / call_count;
+
+    //    printf("total time: %lu ms\n", us_total/1000);
+    //    printf("call count: %u\n", call_count);
+    //    printf("avg time: %.1f ns\n", ns_avg);
+
+    return ns_avg;
+}
+
 void Sys8080::bist()
 {
     Sys8080& sys = *(Sys8080::create("sys1"));
 
-    Edge &OSC(sys.OSC);
+    Edge& OSC(sys.OSC);
 
     Action tick = [&] {
         const double  MHz  = 18.00;
@@ -50,6 +81,30 @@ void Sys8080::bist()
     };
 
     sys.linked();
+
+    // do some benchmarking.
+
+    UNIT = 0;
+    TAU  = 0;
+
+    sys.RESIN.lo();
+    tick_us(1.5);
+    sys.RESIN.hi();
+    tick_us(2.0);
+    sys.RDYIN.hi();
+
+    Action a = [=] { tick_us(1000.0); };
+
+    double ms_per_sim_ms_1 = check_timing(a) / 1000000.0;
+    double ms_per_sim_ms_2 = check_timing(a) / 1000000.0;
+    double ms_per_sim_ms_3 = check_timing(a) / 1000000.0;
+    fprintf(stderr, "Sys8080: wall ms per sim ms is %.2f, %.2f, %.2f\n",
+        ms_per_sim_ms_1, ms_per_sim_ms_2, ms_per_sim_ms_3);
+
+    // get back into reset.
+    sys.RESIN.lo();
+    sys.RDYIN.lo();
+    tick_us(2.0);
 
     // sys.OSC
     // sys.RESIN
@@ -87,6 +142,10 @@ void Sys8080::bist()
 
     sys.cpu.SYNC.rise_cb(that_phi1_rise_is_pagebreak);
 
+    // need UNIT=0 when we start tracing.
+    UNIT = 0;
+    TAU  = 0;
+
     traces.push_back(new Traced("PHI1", sys.clk.PHI1));
     traces.push_back(new Traced("PHI2", sys.clk.PHI2));
     traces.push_back(new Traced("PHI1A", sys.clk.PHI1A));
@@ -116,21 +175,16 @@ void Sys8080::bist()
     traces.push_back(new Traced("IOW", sys.clk.IOW, true));
     traces.push_back(new Traced("INTA", sys.clk.INTA, true));
 
-    // need UNIT=0 when we start tracing.
-
-    UNIT = 0;
-    TAU = 0;
-
     sys.RESIN.lo();
     tick_us(1.5);
     sys.RESIN.hi();
     tick_us(2.0);
     sys.RDYIN.hi();
 
-    tick_us(100.0);
+    tick_us(6.5);
 
     tau_t u_max = UNIT;
-    
+
     for (auto* it : traces)
         it->update_trace();
 
@@ -141,6 +195,7 @@ void Sys8080::bist()
 
     double us_per_unit = (TAU * 0.001) / UNIT;
 
+    printf("\n");
     tau_t u = 0;
     for (auto m : page_breaks) {
         while (u < m.t) {
@@ -155,6 +210,5 @@ void Sys8080::bist()
         }
     }
     printf("\n");
-
     printf("Sys8080::bist complete.\n");
 }

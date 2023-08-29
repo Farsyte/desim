@@ -151,12 +151,13 @@ static void benchmark(Action cycle)
             max_iter = (max_iter * 200000) / us_total;
     }
 
-    fprintf(stderr, "wall clock time: %10.3f ms\n", us_total / 1000.0);
-    fprintf(stderr, "simulation time: %10.3f ms\n", TAU / 1000000.0);
+    // fprintf(stderr, "wall clock time: %10.3f ms\n", us_total / 1000.0);
+    // fprintf(stderr, "simulation time: %10.3f ms\n", TAU / 1000000.0);
 
     //    fprintf(stderr, "Simulation of %.1f ms required %.3f ms wall time.\n",
     //            TAU / 1000000.0, us_total / 1000.0);
 
+    fprintf(stderr, "\n");
     fprintf(stderr, "Clock: %g ns (wall) per ms of simulation\n",
         us_total * 1000000.0 / TAU);
 }
@@ -600,6 +601,5 @@ void Clk8080::bist()
         }
     }
     printf("\n");
-
-    printf("clk_asserts passed\n");
+    printf("Clk8080::bist() passed\n");
 }

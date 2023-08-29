@@ -19,10 +19,10 @@ int main(int argc, char** argv)
     // the built-in self tests for all of the
     // classes that we know have them.
 
-    //Actions::bist();
-    //Edge::bist();
-    //Clk8080::bist();
-    //Cpu8080::bist();
+    Actions::bist();
+    Edge::bist();
+    Clk8080::bist();
+    Cpu8080::bist();
     Sys8080::bist();
 
     return 0;

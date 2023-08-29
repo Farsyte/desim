@@ -97,8 +97,8 @@ void Clk8080impl::linked()
 
     assert(WR->get());
 
-    RESET.rise_cb([=] {STSTB.lo();});
-    RESET.fall_cb([=] {STSTB.hi();});
+    RESET.rise_cb([=] { STSTB.lo(); });
+    RESET.fall_cb([=] { STSTB.hi(); });
 
     PHI1A.rise_cb([=] {
         RESET.set(!RESIN->get());

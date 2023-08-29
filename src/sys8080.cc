@@ -51,7 +51,7 @@ Sys8080* Sys8080::create(const char* name)
     return new Sys8080impl(name);
 }
 
-Sys8080::~Sys8080() {}
+Sys8080::~Sys8080() { }
 Sys8080::Sys8080(const char* name)
     : Module(name)
     , clk(*Clk8080::create(format("%s.clk1", name)))
