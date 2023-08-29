@@ -8,10 +8,12 @@
 
 class Cpu8080 : public Module {
 public:
+    // State visible in hardware outside the chip
+
     // Address and Data bus: simple storage of state that the
     // simulation just allows everyone to access.
-    Byte D; // D₇..D₀ 8-bit bidirectional data bus
-    Word A; // A₁₅..A₀ 16-bit address bus
+    Byte Data; // D₇..D₀ 8-bit bidirectional data bus
+    Word Addr; // A₁₅..A₀ 16-bit address bus
 
     // Input signals from the 8224 clock generator
     Edge* PHI1;  // 8080 pin 22 input (from 8224) phase 1 clock
@@ -32,6 +34,15 @@ public:
     Edge* HOLD; // 8080 pin 13 input (from world) System DMA Request
     Edge* INT;  // 8080 pin 14 input (from world) interrupt request
     Edge  INTE; // 8080 pin 16 output (to world) Interrupt Enable
+
+    // State visible to the programmer
+    // Synthesize BC,DE,HL as needed.
+
+    Byte B, C, D, E, H, L; // general registers
+    Byte ACC;              // 8-bit accumulator
+    Word SP;               // 16-bit stack pointer
+    Word PC;               // 16-bit program counter
+    Bit  CY, P, AC, Z, S;  // flag bits
 
     virtual void linked() = 0;
 

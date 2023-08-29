@@ -47,6 +47,14 @@ public:
         reset_rise();
     }
 
+    // Architectural State of the Chip
+
+    Byte ACT;  // accumulator latch
+    Byte TMP;  // ALU temp reg
+    Byte DBL;  // data bus buffer/latch
+    Byte IR;   // instruction register
+    Byte Z, W; // temp regs
+
 protected:
     enum phase_e {
         PHI1_RISE,
@@ -105,8 +113,8 @@ protected:
         s_fp = s_fp_next;
         s_fn = s_fn_next;
 
-        // TODO Float the A bus
-        // TODO Float the D bus
+        // TODO Float the Addr bus
+        // TODO Float the Data bus
 
         // De-assert the control signals
         SYNC.lo();
@@ -135,9 +143,10 @@ protected:
         case PHI1_FALL:
             break;
         case PHI2_RISE:
-            D = status;
+            Addr = PC;
+            Data = status;
             SYNC.hi();
-            // STUB(" %6.2f μs: with D=%03o assert SYNC", (TAU * 0.001), D);
+            // STUB(" %6.2f μs: with Data=%03o assert SYNC", (TAU * 0.001), Data);
             break;
         case PHI2_FALL:
             NEXT_STATE('2', s_incpc);
@@ -154,9 +163,10 @@ protected:
         case PHI1_FALL:
             break;
         case PHI2_RISE:
-            // STUB(" %6.2f μs: drop SYNC, float D, assert DBIN", (TAU * 0.001));
+            // STUB(" %6.2f μs: release SYNC, float Data, assert DBIN", (TAU * 0.001));
             SYNC.lo();
-            D = 0377;
+            PC++;
+            Data = 0377;
             DBIN.hi();
             break;
         case PHI2_FALL:
@@ -200,8 +210,9 @@ protected:
         case PHI1_FALL:
             break;
         case PHI2_RISE:
-            // STUB(" %6.2f μs: latch %03o into IR, drop DBIN", (TAU * 0.001), D);
-            IR = D;
+            // STUB(" %6.2f μs: latch %03o from %05o into IR, release DBIN",
+            //      (TAU * 0.001), Data, Addr);
+            IR = Data;
             DBIN.lo();
             break;
         case PHI2_FALL:
@@ -210,7 +221,6 @@ protected:
             break;
         }
     }
-    Byte IR;
 
     void s_nopT4(phase_e ph)
     {
@@ -221,6 +231,7 @@ protected:
         case PHI1_FALL:
             break;
         case PHI2_RISE:
+            // This is, I think, also where we float the Addr bus.
             // STUB(" %6.2f μs: execute NOP instruction", (TAU * 0.001));
             break;
         case PHI2_FALL:
@@ -229,15 +240,7 @@ protected:
         }
     }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-    union {
-        struct {
-#pragma GCC diagnostic pop
-            STATUS_BIT_DECLS;
-        };
-        Byte status;
-    };
+    Byte status;
 };
 
 Cpu8080* Cpu8080::create(const char* name)

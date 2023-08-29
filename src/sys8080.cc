@@ -33,7 +33,7 @@ Sys8080impl::Sys8080impl(const char* name)
 
     clk.SYNC = &(cpu.SYNC); // 8224 sync pulse for T1 and status word
 
-    clk.D    = &(cpu.D);    // 8228 cpu data bus
+    clk.D    = &(cpu.Data); // 8228 cpu data bus
     clk.DBIN = &(cpu.DBIN); // 8228 data bus driven by cpu
     clk.WR   = &(cpu.WR);   // 8228 data bus driven to cpu
     clk.HLDA = &(cpu.HLDA); // 8228 hold state
