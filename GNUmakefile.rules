@@ -108,9 +108,8 @@ XIFLAGS         = ${XIDIRS:%=-I%}
 # Set the compiler debug and optimizer level.
 # For now, enable debug and shut off the optimizer
 # so I can see proper backtraces.
-DBG             = -g
-OPT             = -O0
-# OPT             = -Ofast
+# DBG             = -g
+OPT             = -O3
 DBGOPT          = $(DBG) $(OPT)
 
 # Set the compiler warning flags.

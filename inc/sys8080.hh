@@ -11,16 +11,22 @@
 
 class Sys8080 : public Module {
 public:
-    Clk8080* clk;
-    Cpu8080* cpu;
-
-    virtual void  linked() = 0;
-    virtual tau_t tick()   = 0;
-
     static void bist();
 
     static Sys8080* create(const char* name);
 
-protected:
+    Edge OSC;
+
+    Edge RESIN;
+    Edge RDYIN;
+    Edge DMARQ;
+    Edge INTRQ;
+
+    Clk8080& clk;
+    Cpu8080& cpu;
+
+    virtual void linked() = 0;
+
     Sys8080(const char*); // please use Sys8080::create(name)
+    virtual ~Sys8080();
 };

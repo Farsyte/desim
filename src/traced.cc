@@ -61,7 +61,7 @@ void Traced::print(int tmin, int tlen)
 
     printf("%s:\t%s\n", name, s.c_str());
 
-//    std::cout << name << ":\t";
-//    std::cout << s;
-//    std::cout << std::endl;
+    //    std::cout << name << ":\t";
+    //    std::cout << s;
+    //    std::cout << std::endl;
 }

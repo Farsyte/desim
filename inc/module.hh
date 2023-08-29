@@ -1,8 +1,6 @@
 #pragma once
 
 class Module {
-    const char* name;
-
 public:
     Module(const char* name);
 
@@ -14,4 +12,6 @@ public:
     // of the module have been linked.
 
     virtual void linked() = 0;
+
+    const char* name;
 };

@@ -11,7 +11,7 @@ run::		${XINST}
 rep::		${XINST}
 	$C ${BDIR}${XPROG} > ${TDIR}${XPROG}.obs.log
 	$C diff ${TDIR}${XPROG}.exp.log ${TDIR}${XPROG}.obs.log | tee ${TDIR}${XPROG}.cmp.log
-	$E ${XPROG} output looks OK
+	$E $${TDIR}${XPROG}.exp.log matches ${TDIR}${XPROG}.obs.log
 	$C git status
 
 XOBS		:= ${XPROG:%=${TDIR}%.obs.log}
@@ -29,6 +29,9 @@ ${TDIR}%.cmp.log:	${BDIR}%
 cmp::
 	${RF} ${XCMP}
 	$M ${XCMP}
+
+gdb::			${XINST}
+	gdb ${XINST}
 
 clean::
 	${RF} ${TDIR}$*.obs.log

@@ -47,4 +47,3 @@ void Edge::fall_cb(Action f)
 {
     fall.push_back(f);
 }
-

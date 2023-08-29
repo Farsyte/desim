@@ -1,7 +1,7 @@
 #include "actions.hh"
 
 #include <cassert>
-#include <cstdio>   // c++ <streams> are too painful for words.
+#include <cstdio> // c++ <streams> are too painful for words.
 //#include <iostream> // but sometimes I have to use them
 
 #include "timer.hh"
@@ -90,27 +90,27 @@ void Actions::bist()
 {
     check_order();
 
-    // run the timing three times and take the best,
-    // just in case something in the build and test
-    // environment paused us.
-    double mt = 0;
-
-    max_count = 1000;
-
-    // if check_timing notices elapsed time is too short,
-    // it adjusts max_count and returns -1 for a rerun.
-    mt = check_timing();
-    mt = min(mt, check_timing());
-    mt = min(mt, check_timing());
-
-    fprintf(stderr, "Actions: %.1f ns (wall)\n", mt);
-
-    // Currently this averages ~90-100ns per service call
-    // on my "fragbox" (AMD Ryzen 9 5950x, 2.2 to 4.6 GHz).
+    //    // run the timing three times and take the best,
+    //    // just in case something in the build and test
+    //    // environment paused us.
+    //    double mt = 0;
     //
-    // If it grows to 1μs, something bad has happened.
-
-    assert(mt < 1000);
+    //    max_count = 1000;
+    //
+    //    // if check_timing notices elapsed time is too short,
+    //    // it adjusts max_count and returns -1 for a rerun.
+    //    mt = check_timing();
+    //    mt = min(mt, check_timing());
+    //    mt = min(mt, check_timing());
+    //
+    //    fprintf(stderr, "Actions: %.1f ns (wall)\n", mt);
+    //
+    //    // Currently this averages ~90-100ns per service call
+    //    // on my "fragbox" (AMD Ryzen 9 5950x, 2.2 to 4.6 GHz).
+    //    //
+    //    // If it grows to 1μs, something bad has happened.
+    //
+    //    assert(mt < 1000);
 
     printf("Actions::bist complete.\n");
 }

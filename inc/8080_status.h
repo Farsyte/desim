@@ -9,17 +9,17 @@
 #define STATUS_MEMR  0b10000000; // Memory Read
 
 // Aggregate Status Byte values for each machine cycle type
-#define STATUS_RESET    0b00000010
-#define STATUS_FETCH    0b10100010
-#define STATUS_MREAD    0b10000010
-#define STATUS_MWRITE   0b00000000
-#define STATUS_SREAD    0b10000110
-#define STATUS_SWRITE   0b00000100
-#define STATUS_INPUTRD  0b01000010
-#define STATUS_OUTPUTWR 0b00010000
-#define STATUS_INTACK   0b00100011
-#define STATUS_HALTACK  0b10001010
-#define STATUS_INTACKW  0b00101011
+#define STATUS_RESET    0b00000010 // (0) can be used during RESET
+#define STATUS_FETCH    0b10100010 // (1) MEMR M1
+#define STATUS_MREAD    0b10000010 // (2) MEMR
+#define STATUS_MWRITE   0b00000000 // (3)              /WO
+#define STATUS_SREAD    0b10000110 // (4) MEMR STACK
+#define STATUS_SWRITE   0b00000100 // (5)      STACK   /WO
+#define STATUS_INPUTRD  0b01000010 // (6) INP
+#define STATUS_OUTPUTWR 0b00010000 // (7) OUT          /WO
+#define STATUS_INTACK   0b00100011 // (8)      M1        INTA
+#define STATUS_HALTACK  0b10001010 // (9) MEMR    HLTA
+#define STATUS_INTACKW  0b00101011 // (10)     M1 HLTA   INTA
 
 // Bit declarations to be used inside a C Struct placing the
 // symbols to match up with their positions in STATUS.
