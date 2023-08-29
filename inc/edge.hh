@@ -8,7 +8,7 @@ class Edge {
 
     // Edge triggering is only available for
     // single-bit signals.
-    Bit val;
+    Bit                 val;
     std::vector<Action> rise;
     std::vector<Action> fall;
 

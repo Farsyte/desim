@@ -7,13 +7,15 @@ class Traced {
 public:
     Traced(const char* name, Edge& sig, bool active_low = false);
 
-    std::string name;
+    const char* name;
     std::string trace;
-    char valc;
+    char        valc;
     const char* vals;
 
     tau_t u0;
     tau_t u;
+
+    bool boring;
 
     void update_trace();
     void rise();

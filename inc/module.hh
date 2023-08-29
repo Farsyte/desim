@@ -1,12 +1,8 @@
 #pragma once
 
 class Module {
-    const char* name;
-
 public:
-    // Modules in this simulation all have names.
     Module(const char* name);
-    virtual ~Module();
 
     // Some modules will want to obtain pointers to Edge
     // and other objects owned by other modules, which may
@@ -16,4 +12,6 @@ public:
     // of the module have been linked.
 
     virtual void linked() = 0;
+
+    const char* name;
 };

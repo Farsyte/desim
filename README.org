@@ -150,7 +150,7 @@ This module started as a direct implementation of the 8080 Clock
 Generator schematic shown in Figure 3-3 of the Intel 8080
 Microcomputer Systems User's Manual; I noticed that this circuit
 provides synchronized READY, HOLD, and /STSTB, while the 8224 Clock
-Generator and Driver provides RESET, READY. and /STSTB.
+Generator and Driver provides RESET, READY, and /STSTB.
 
 Accordingly, Clk8080 provides RESET, READY, HOLD, and INT; all of
 these are expected to be stable for some time before Φ₂↓, so latching
