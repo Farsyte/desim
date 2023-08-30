@@ -7,7 +7,7 @@
 //
 // The value of a TAU is a number of nanoseconds.
 
-typedef unsigned long tau_t;
+typedef long        tau_t;
 
 // The TAU global of type tau_t represents the current simulated
 // time for the engine. It increases as the simulation engine
@@ -22,3 +22,6 @@ extern tau_t        TAU;
 // cycle of the primary oscillator.
 
 extern tau_t        UNIT;
+
+// provide a BIST that checks that we are good.
+extern void         tau_bist();
