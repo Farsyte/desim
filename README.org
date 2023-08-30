@@ -14,25 +14,18 @@ The simulation proceeds by evaluating portions of the system at
 discrete times, and no provision is made for tracking what happens
 between the ticks of the simulation.
 
-*** Actions
+*** Action: a bit of code that runs
 
-The unit of work within the simulation is an Action, which is
-expressed as a C++ Lambda expression and a simuilated time at which to
-execute it. The lambda expression takes no arguments and returns no
-value. The current simulated time is a fundamental truth that is
-available globally.
+At the core of this facility is a first-in first-out queue of bits of
+code to be evaluated at the current time, and a bit of code specific
+to the simulation that owns the definition of the current time, which
+takes care of advancing the simuilated time and kicking off the
+activity for the next time.
 
-Most actions have delayed consequences, which are achieved by having
-code running in the action activate an action with a time in the
-future, which applies the consequence. For example, if a module wishes
-to place data on a data bus 20ns after a rising edge of a clock, then
-it has an action attached to the rising clock edge, which activates an
-action to set the data bus at a time 20ns in the future.
+*** Actions: a queue of bits of code to run
 
-The collection of Actions is at the core of the simulation; placing
-actions into this collection, and fetching the action with lowest
-scheduled time, are expected to be the "hot path" through the code,
-and will likely be first on the optimization bench.
+The bits of code may be wraped in an Action, and there is an Actions
+facility that handles a first-in-first-out collection of these.
 
 ** Digital, not Analog
 
@@ -41,12 +34,8 @@ fundamental unit of storage is the Bit, which can be 0 or 1. To
 simplify simulation of systems that inherently cluster Bits as a
 binary number (such as the Address and Data busses in most
 processors), some values may take on an unsigned 8-bit, 16-bit, or
-larger value.
-
-Floating point might appear, but only in the context of simplification
-of the simulation of a floating point unit. It would represent 32 or
-64 bits that the simulated module is using in a simulated floating
-point context.
+larger value. Accordingly, simulations will tend to provide larger
+data types such as Byte and Word.
 
 ** Modules and Signals
 
@@ -63,6 +52,10 @@ Some signals merely contain the most recent value set by a module,
 which other modules can observe (often done within edge-triggered code
 connected to a proper Edge signal).
 
+It is expected that Bus Signals will appear in the system merely as
+bare storage in the owning module, and pointers back to that storage
+in other modules with access to the signal.
+
 *** Edge Signals
 
 Some signals allow "edge triggered" semantics. Modules may, during
@@ -70,67 +63,106 @@ initialization, specify some code to be run on the rising or falling
 edge of the signal. The major use case of this is to store a 0 or a 1,
 which gives "rising" and "falling" the obvious meaning.
 
-***# When Edges Trigger Edges
+In order to properly service the "edge triggered" semantics, the
+storage for the value of the signal is coupled with a list of Action
+objects to activate on the rising edge, and a distinct list to
+activate on the falling edge.
 
-It is beneficial to specify behavior in a particular case.
+Note that the list of bits of code to run on an edge is very similar
+to the Actions structure mentioned above, except that each Action
+is not removed from this list when it has run.
 
-If several modules are edge-triggered by a specific signal, and each
-of those edge-triggered bits of code could change the value of other
-Edge signals, we specify that the bits of code are run BREADTH FIRST
-order.
+*** Modules
 
-That is, service methods are executed in an order AS IF the act of
-changing an edge placed them all on a queue, then ran each one in
-queue order; and any activities requested by a service are placed on
-the end of the FIFO so that any edge propagation flows out all of the
-cascading outputs in parallel, rather than flowing down one path, then
-starting the next.
+The actual logic that observes inputs and publishes outputs lives in
+the various Modules of any given simulation. Generally, the Module
+object will own some Edge objects, have pointers to others, and
+contain some storage areas for the simple Bus data.
 
-During the cascading forward of edge triggered events, the simulation
-is not incrementing the tick counter.
+At a minimum, Module objects always have a name, and always have a
+method to call when all of the pointers have been set to finish up any
+initialization. Generally, most code will be run in response to a
+rising or falling Edge; as a special case, a simulation will have one
+specific instance of a module that has a "tick" method, generally the
+module that is the origin of the most important (and fastest) clock in
+the system, which is used to trigger the start of each new unit of time.
 
-*** Conflicts: Signals that Float
+*** Time
 
-Some signals of width N can take on 2^N values, or can be Floating. If
-multiple modules can publish data in a Signal, then each should take
-care to set the signal state to Floating before another publishes its
-value.
+Time is represented by two global variables in the system, both of
+which are of type tau_t, which is intended to be a type that can
+maintain a monotonically increasing value, without loss of precision,
+across the whole span of any useful simulation.
 
-A Bus that may be Floating or may be driven by any of several modules
-might be implemented by having the Bus reference the module driving
-it; this might be efficiently done by having the Bus represent the
-value with a pointer to the storage, in the driving module, of the
-data for the bus; a floating bus would be a pointer to data the Bus
-owns, representing the bus state that would be observed when it is
-floating.
+The two variables are TAU and UNIT. TAU represents elapsed simulated
+time in some unit useful to the user -- suggested possibilities are
+floating point seconds, or 64-bit unsigned nanoseconds. UNIT is
+expected to increment once for each cycle of the fastest clock in the
+system, allowing UNIT to easily be used as an array index when working
+with signal trace data for display.
 
-*** Conflicts: Wire-And and Wire-Or Signals are Modules
+*** ---
 
-Some signals comprise N independent bits, which take on a high or low
-value when not driven, but have multiple modules that can drive them;
-if any module drives any bit to the other value, the other value is
-observed by all observers.
+** ---
 
-This raises the spectre of multiple modules driving a signal, and one
-of them releasing it -- the simulation needs a clever way to update
-the value of the signal based on all of the other driving modules.
+* Simulations being built within the framework
 
-As this requires a bit of code to run when a module de-asserts a
-wire-or or wire-and signal, this fits as a Module within this
-simulation, which can notice the transition of one input and
-re-generate the output properly.
+** Farsyte 8080
 
-** Level of Detail Unspecified by Framework
+My initial goal is to simulate the Intel 8080A and enough of the
+surrounding support circuitry to be able to see timing charts that
+look like the timing charts in the manuals.
 
-Within this framework, it is possible to build a system that simulates
-down to the individual gates within a clock generator, requiring ticks
-to manage the transitions of whatever signal is oscillating. Or one
-might build a system where each tick represents one machine cycle, or
-one instruction, or other unit of work appropriate to the application
-of the framework.
+I have *many* sources for this, ranging from scans of original
+documents from 1975 up to some more modern designs.
 
-My initial application, for the moment, is inteded to be a
-signal-accurate cycle-accurate simulation of an 8080 based system,
-stepping the tick with period 55.555 ns, corresponding to the rising
-edges of the primary oscillator from which the two-phase clock is
-derived in (for example) the Imsai 8080.
+I may use designs from http://www.s100computers.com which are very
+very readable, but I will be inclined toward maching older designs
+and older timing charts.
+
+I'm going to keep a hotlink here to a cool design:
+
+http://www.s100computers.com/My%20System%20Pages/8080%20CPU%20Board/JAIR1SCH-Production%20Rev1%5b1%5d.pdf
+
+Legend on this PDF:
+
+#+begin_src text
+
+  8080 REPLACEMENT BOARD
+  FOR ALTAIR AND IMSAI
+  S-100 COMPUTERS. 8080A CPU,
+  64K RAM, 32K ROM, I/O, UARTS
+  SPI & SD CARD FLOPPY EMULATION
+  VER 1.0 JUNE 5 2014
+  DESIGNER: JOSH BENSADON
+  REV 1
+
+#+end_src
+
+It strikes me that if I do end up simulating exactly this design,
+there may be software out there I can use to test it, beyond my
+original plan of loading up FIG-FORTH 8080 and capturing its
+calls to the CP/M BIOS.
+
+*** Module::Clk8080
+
+This module started as a direct implementation of the 8080 Clock
+Generator schematic shown in Figure 3-3 of the Intel 8080
+Microcomputer Systems User's Manual; I noticed that this circuit
+provides synchronized READY, HOLD, and /STSTB, while the 8224 Clock
+Generator and Driver provides RESET, READY, and /STSTB.
+
+Accordingly, Clk8080 provides RESET, READY, HOLD, and INT; all of
+these are expected to be stable for some time before Φ₂↓, so latching
+them on Φ₁A↑ makes sense.
+
+The test code for Clk8080 has a bit of runt logic that can generate
+SYNC suitable for testing that Clk8080 provides /STSTB correctly.
+
+I want to extend Clk8080 to handle the logic frim the 8228, which
+latches the STATUS word and generates a number of additional useful
+signals: /MEMR /MEMW /IOR /IOW /BUSEN /INTA
+
+Having strict Clk8224 and Ctl8228 modules handy might also be a good
+idea depending on what CPU boards I might want to simulate.
+
