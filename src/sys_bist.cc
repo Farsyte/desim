@@ -53,9 +53,9 @@ static double check_timing(Action a)
 
 void Sys8080::bist()
 {
-    Sys8080& sys = *(Sys8080::create("sys1"));
+    Sys8080& SYS = *(Sys8080::create("sys1"));
 
-    Edge& OSC(sys.OSC);
+    Edge& OSC(SYS.OSC);
 
     Action tick = [&] {
         const double  MHz  = 18.00;
@@ -80,18 +80,18 @@ void Sys8080::bist()
         tick_to(TAU + (int)dt);
     };
 
-    sys.linked();
+    SYS.linked();
 
     // do some benchmarking.
 
     UNIT = 0;
     TAU  = 0;
 
-    sys.RESIN.lo();
+    SYS.RESIN.lo();
     tick_us(1.5);
-    sys.RESIN.hi();
+    SYS.RESIN.hi();
     tick_us(2.0);
-    sys.RDYIN.hi();
+    SYS.RDYIN.hi();
 
     Action a = [=] { tick_us(1000.0); };
 
@@ -102,15 +102,15 @@ void Sys8080::bist()
         ms_per_sim_ms_1, ms_per_sim_ms_2, ms_per_sim_ms_3);
 
     // get back into reset.
-    sys.RESIN.lo();
-    sys.RDYIN.lo();
+    SYS.RESIN.lo();
+    SYS.RDYIN.lo();
     tick_us(2.0);
 
-    // sys.OSC
-    // sys.RESIN
-    // sys.RDYIN
-    // sys.DMARQ
-    // sys.INTRQ
+    // SYS.OSC
+    // SYS.RESIN
+    // SYS.RDYIN
+    // SYS.DMARQ
+    // SYS.INTRQ
 
     std::vector<Traced*> traces;
 
@@ -130,7 +130,7 @@ void Sys8080::bist()
     const char*            phi1rise_title1 = "";
     const char*            phi1rise_title2 = "";
 
-    sys.clk.PHI1.rise_cb([&] {
+    SYS.CLK.PHI1.rise_cb([&] {
         phi1rise_unit   = UNIT;
         phi1rise_title2 = phi1rise_title1;
         phi1rise_title1 = page_title;
@@ -140,46 +140,46 @@ void Sys8080::bist()
         page_breaks.push_back(PageBreak(phi1rise_unit, phi1rise_title2));
     };
 
-    sys.cpu.SYNC.rise_cb(that_phi1_rise_is_pagebreak);
+    SYS.CPU.SYNC.rise_cb(that_phi1_rise_is_pagebreak);
 
     // need UNIT=0 when we start tracing.
     UNIT = 0;
     TAU  = 0;
 
-    traces.push_back(new Traced("PHI1", sys.clk.PHI1));
-    traces.push_back(new Traced("PHI2", sys.clk.PHI2));
-    traces.push_back(new Traced("PHI1A", sys.clk.PHI1A));
+    traces.push_back(new Traced("PHI1", SYS.CLK.PHI1));
+    traces.push_back(new Traced("PHI2", SYS.CLK.PHI2));
+    traces.push_back(new Traced("PHI1A", SYS.CLK.PHI1A));
 
-    traces.push_back(new Traced("RESIN", sys.RESIN, true));
-    traces.push_back(new Traced("RESET", sys.clk.RESET));
+    traces.push_back(new Traced("RESIN", SYS.RESIN, true));
+    traces.push_back(new Traced("RESET", SYS.CLK.RESET));
 
-    traces.push_back(new Traced("SYNC", sys.cpu.SYNC));
-    traces.push_back(new Traced("STSTB", sys.clk.STSTB, true));
+    traces.push_back(new Traced("SYNC", SYS.CPU.SYNC));
+    traces.push_back(new Traced("STSTB", SYS.CLK.STSTB, true));
 
-    traces.push_back(new Traced("RDYIN", sys.RDYIN, true));
-    traces.push_back(new Traced("READY", sys.clk.READY, true));
+    traces.push_back(new Traced("RDYIN", SYS.RDYIN, true));
+    traces.push_back(new Traced("READY", SYS.CLK.READY, true));
 
-    traces.push_back(new Traced("DMARQ", sys.DMARQ));
-    traces.push_back(new Traced("HOLD", sys.clk.HOLD));
+    traces.push_back(new Traced("DMARQ", SYS.DMARQ));
+    traces.push_back(new Traced("HOLD", SYS.CLK.HOLD));
 
-    traces.push_back(new Traced("INTRQ", sys.INTRQ));
-    traces.push_back(new Traced("INT", sys.clk.INT));
+    traces.push_back(new Traced("INTRQ", SYS.INTRQ));
+    traces.push_back(new Traced("INT", SYS.CLK.INT));
 
-    traces.push_back(new Traced("DBIN", sys.cpu.DBIN));
-    traces.push_back(new Traced("WR", sys.cpu.WR, true));
-    traces.push_back(new Traced("HLDA", sys.cpu.HLDA));
+    traces.push_back(new Traced("DBIN", SYS.CPU.DBIN));
+    traces.push_back(new Traced("WR", SYS.CPU.WR, true));
+    traces.push_back(new Traced("HLDA", SYS.CPU.HLDA));
 
-    traces.push_back(new Traced("MEMR", sys.clk.MEMR, true));
-    traces.push_back(new Traced("MEMW", sys.clk.MEMW, true));
-    traces.push_back(new Traced("IOR", sys.clk.IOR, true));
-    traces.push_back(new Traced("IOW", sys.clk.IOW, true));
-    traces.push_back(new Traced("INTA", sys.clk.INTA, true));
+    traces.push_back(new Traced("MEMR", SYS.CLK.MEMR, true));
+    traces.push_back(new Traced("MEMW", SYS.CLK.MEMW, true));
+    traces.push_back(new Traced("IOR", SYS.CLK.IOR, true));
+    traces.push_back(new Traced("IOW", SYS.CLK.IOW, true));
+    traces.push_back(new Traced("INTA", SYS.CLK.INTA, true));
 
-    sys.RESIN.lo();
+    SYS.RESIN.lo();
     tick_us(1.5);
-    sys.RESIN.hi();
+    SYS.RESIN.hi();
     tick_us(2.0);
-    sys.RDYIN.hi();
+    SYS.RDYIN.hi();
 
     tick_us(6.5);
 

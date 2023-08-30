@@ -5,4 +5,4 @@
 // change for simulated 32-bit and 64-bit systems.
 
 #include <cstdint>
-typedef uint32_t Word;
+typedef uint16_t Word;

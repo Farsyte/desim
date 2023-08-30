@@ -15,24 +15,15 @@ public:
     virtual void linked();
 
 protected:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-    union {
-        struct {
-#pragma GCC diagnostic pop
-            STATUS_BIT_DECLS;
-            // bits from low to high, on little-endian simulation hosts.
-            //            unsigned sINTA  : 1; // Interrupt Acknowledge
-            //            unsigned sWO    : 1; // Write Output (active low)
-            //            unsigned sSTACK : 1; // Stack Memory Access
-            //            unsigned sHLTA  : 1; // Halt Acknowledge
-            //            unsigned sOUT   : 1; // Output Write
-            //            unsigned sM1    : 1; // Instruction Fetch (including Interrupt Service)
-            //            unsigned sINP   : 1; // Input Read
-            //            unsigned sMEMR  : 1; // Meory Read
-        };
-        Byte sBYTE;
-    };
+    Byte STATUS;
+#define sINTA  (STATUS & STATUS_INTA)
+#define sWO    (STATUS & STATUS_WO)
+#define sSTACK (STATUS & STATUS_STACK)
+#define sHLTA  (STATUS & STATUS_HLTA)
+#define sOUT   (STATUS & STATUS_OUT)
+#define sM1    (STATUS & STATUS_M1)
+#define sINP   (STATUS & STATUS_INP)
+#define sMEMR  (STATUS & STATUS_MEMR)
 
     void on_osc_rise();
 };
@@ -131,7 +122,7 @@ void Clk8080impl::linked()
     // it until DBIN rises.
 
     STSTB.fall_cb([=] {
-        sBYTE = *D;
+        STATUS = *D;
 
         // match 8228 waveforms:
         // assert these, if there is

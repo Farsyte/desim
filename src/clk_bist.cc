@@ -391,7 +391,7 @@ void Clk8080::bist()
             SYNC.hi();
             break;
         case 2:
-            D = 0xFF;
+            D = 0377;
             SYNC.lo();
             break;
         }

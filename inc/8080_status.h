@@ -1,12 +1,12 @@
 // Position of each status bit in the status byte
-#define STATUS_INTA  0b00000001; // Interrupt Acknowledge
-#define STATUS_WO    0b00000010; // Write Output (active low)
-#define STATUS_STACK 0b00000100; // Stack Memory Access
-#define STATUS_HLTA  0b00001000; // Halt Acknowledge
-#define STATUS_OUT   0b00010000; // Output Write
-#define STATUS_M1    0b00100000; // Instruction Fetch (including Interrupt Service)
-#define STATUS_INP   0b01000000; // Input Read
-#define STATUS_MEMR  0b10000000; // Memory Read
+#define STATUS_INTA  0b00000001 // Interrupt Acknowledge
+#define STATUS_WO    0b00000010 // Write Output (active low)
+#define STATUS_STACK 0b00000100 // Stack Memory Access
+#define STATUS_HLTA  0b00001000 // Halt Acknowledge
+#define STATUS_OUT   0b00010000 // Output Write
+#define STATUS_M1    0b00100000 // Instruction Fetch (including Interrupt Service)
+#define STATUS_INP   0b01000000 // Input Read
+#define STATUS_MEMR  0b10000000 // Memory Read
 
 // Aggregate Status Byte values for each machine cycle type
 #define STATUS_RESET    0b00000010 // (0) can be used during RESET
