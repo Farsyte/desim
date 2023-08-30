@@ -38,11 +38,35 @@ public:
     // State visible to the programmer
     // Synthesize BC,DE,HL as needed.
 
-    Byte B, C, D, E, H, L; // general registers
-    Byte ACC;              // 8-bit accumulator
-    Word SP;               // 16-bit stack pointer
-    Word PC;               // 16-bit program counter
-    Bit  CY, P, AC, Z, S;  // flag bits
+    // Allow me to index into arrays to get
+    // registers and register pairs. Note that
+    // for H and L to be high and low bytes of HL,
+    // order must be reversed.
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+    union {      // unnamed union is an extension.
+        struct { // unnamed struct is an extension.
+#pragma GCC diagnostic pop
+            // pretend M is a register.
+            Byte L, H, E, D, C, B;
+        };
+        Byte r[6];
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+        struct { // unnamed struct is an extension.
+#pragma GCC diagnostic pop
+
+            // pretend MA is a register.
+            Word HL, DE, BC;
+        };
+        Byte rp[3];
+    };
+    Byte ACC;             // 8-bit accumulator
+    Word SP;              // 16-bit stack pointer
+    Word PC;              // 16-bit program counter
+    Bit  CY, P, AC, Z, S; // flag bits
 
     virtual void linked() = 0;
 

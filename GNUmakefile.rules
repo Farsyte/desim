@@ -170,6 +170,14 @@ ${ODIR}%.o:    ${SDIR}%.cc
 	 sed '1s|^$*\.o: |$@: |' > ${DDIR}$*.d
 	$Q $(COMPILE.cc) $(OUTPUT_OPTION) $<
 
+${SDIR}%.E:    ${SDIR}%.c
+	$E '$(CPP) $* ...'
+	$Q $(CPP) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< > $@
+
+${SDIR}%.E:    ${SDIR}%.cc
+	$E '$(CPP) $* ...'
+	$Q $(CPP) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< > $@
+
 ${LDIR}%.a:     ${OBJS}
 	$E '$(AR) $* ...'
 	$(AR) $(ARFLAGS) $@ $^
