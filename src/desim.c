@@ -1,11 +1,15 @@
 #include <stdio.h>
+#include <time.h>
+
+#include "edge.h"
 
 int main(int argc, char **argv)
 {
     (void)argc;
     (void)argv;
 
-    printf("hello, world!\n");
+    tau_bist();
+    edge_bist();
 
-    // TODO executive for desim
+    printf("PASS: the usual BIST are complete.\n");
 }

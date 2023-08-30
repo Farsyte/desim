@@ -1,1 +1,23 @@
-hello, world!
+s1: a↑
+s2: a↑
+s2: b↑
+s1: c↑
+s3: a↓
+s3: b↓
+s3: c↓
+s1: a↑
+s2: a↑
+s2: b↑
+s1: c↑
+s3: a↓
+s3: b↓
+s3: c↓
+s1: a↑
+s2: a↑
+s2: b↑
+s1: c↑
+s3: a↓
+s3: b↓
+s3: c↓
+edge_bist complete
+PASS: the usual BIST are complete.
