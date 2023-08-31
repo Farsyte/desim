@@ -22,4 +22,5 @@ s3: b↓
 s3: c↓
 Edge_bist complete
 Clock_bist complete
-PASS: the usual BIST are complete.
+Gen8224_bist complete
+bin/desim complete
