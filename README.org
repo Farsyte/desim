@@ -17,6 +17,23 @@ depended on C++ classes and lambda expressions.
 I think I can do this in C99, and despite all the C++ talk about
 zero cost abstractions, I think I can make it faster.
 
+** Unconventional Naming Conventions
+
+Follow the rule: Code in the Language of the Domain.
+
+In the domain of old computers I want to simulate, signals names are
+written in UPPERCASE, so I will follow this convention when naming
+variables representing the states of signals.
+
+Several years of total immersion in Java has left me actually liking
+the idea of using Capitalized words for class names, while still
+keeping the C convention of Keep It Short.
+
+Examples:
+- TAU is the time variable, of type Tau.
+- CLOCK is the clock signal, of type Edge.
+
+
 ** Digital, not Analog
 
 Values managed by this simulation are digital in nature. The
@@ -58,7 +75,7 @@ in other structures that own the data.
 ** Time
 
 Time is represented by two global variables in the system, both of
-which are of type tau_t, which is intended to be a type that can
+which are of type Tau, which is intended to be a type that can
 maintain a monotonically increasing value, without loss of precision,
 across the whole span of any useful simulation.
 

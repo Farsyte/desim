@@ -1,4 +1,4 @@
 #include "tau.h"
 
-tau_t               TAU = 0;
-tau_t               UNIT = 0;
+Tau                 TAU = 0;
+Tau                 UNIT = 0;

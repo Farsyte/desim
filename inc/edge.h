@@ -5,33 +5,35 @@
 #include "tau.h"
 #include "sim_types.h"
 
-typedef void edge_fn (void *);
+typedef void Edge_fn (void *);
 
-typedef struct edge_fn_arg_s {
-    edge_fn            *fn;
+typedef struct Edge_fn_arg_s {
+    Edge_fn            *fn;
     void               *arg;
-} edge_fn_arg;
+} Edge_fn_arg;
 
-typedef struct edge_fn_args_s {
+typedef struct Edge_fn_args_s {
     size_t              count;
     size_t              capacity;
-    edge_fn_arg        *list;
-} edge_fn_args;
+    Edge_fn_arg        *list;
+} Edge_fn_args;
 
-typedef struct edge_s {
-    edge_fn_args        rise;
-    edge_fn_args        fall;
-    bit                 value;
-} edge;
+typedef struct Edge_s {
+    Edge_fn_args        rise;
+    Edge_fn_args        fall;
+    Bit                 value;
+} Edge;
 
-extern void         edge_init(edge *e);
+extern void         Edge_init(Edge *e);
 
-#define edge_rise(e,fn,arg)	_edge_rise(e, (edge_fn *)fn, (void *)arg)
-extern void         _edge_rise(edge *e, edge_fn *fn, void *arg);
+#define Edge_rise(e,fn,arg)	_Edge_rise(e, (Edge_fn *)fn, (void *)arg)
+extern void         _Edge_rise(Edge *e, Edge_fn *fn, void *arg);
 
-#define edge_fall(e,fn,arg)	_edge_fall(e, (edge_fn *)fn, (void *)arg)
-extern void         _edge_fall(edge *e, edge_fn *fn, void *arg);
+#define Edge_fall(e,fn,arg)	_Edge_fall(e, (Edge_fn *)fn, (void *)arg)
+extern void         _Edge_fall(Edge *e, Edge_fn *fn, void *arg);
 
-extern void         edge_set(edge *e, bit value);
+extern void         Edge_set(Edge *e, Bit value);
+extern void         Edge_hi(Edge *e);
+extern void         Edge_lo(Edge *e);
 
-extern void         edge_bist();
+extern void         Edge_bist();

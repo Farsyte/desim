@@ -7,25 +7,25 @@
 
 #define NEW(p,n)	p = realloc(p, n * sizeof(*(p)))
 
-static void edge_list_init(edge_fn_args *list)
+static void Edge_list_init(Edge_fn_args *list)
 {
     list->count = 0;
     list->capacity = 0;
     list->list = 0;
 }
 
-void edge_init(edge *e)
+void Edge_init(Edge *e)
 {
-    edge_list_init(&e->rise);
-    edge_list_init(&e->fall);
+    Edge_list_init(&e->rise);
+    Edge_list_init(&e->fall);
     e->value = 0;
 }
 
-static void edge_add(edge_fn_args *list, edge_fn *fn, void *arg)
+static void Edge_add(Edge_fn_args *list, Edge_fn *fn, void *arg)
 {
     size_t              n = list->count;
     size_t              c = list->capacity;
-    edge_fn_arg        *l = list->list;
+    Edge_fn_arg        *l = list->list;
 
     if (n >= c) {
         c = (n < 8) ? 8 : n * 2;
@@ -39,20 +39,20 @@ static void edge_add(edge_fn_args *list, edge_fn *fn, void *arg)
     list->count = n + 1;
 }
 
-void _edge_rise(edge *e, edge_fn *fn, void *arg)
+void _Edge_rise(Edge *e, Edge_fn *fn, void *arg)
 {
-    edge_add(&e->rise, fn, arg);
+    Edge_add(&e->rise, fn, arg);
 }
 
-void _edge_fall(edge *e, edge_fn *fn, void *arg)
+void _Edge_fall(Edge *e, Edge_fn *fn, void *arg)
 {
-    edge_add(&e->fall, fn, arg);
+    Edge_add(&e->fall, fn, arg);
 }
 
-void edge_run(edge_fn_args *list)
+void Edge_run(Edge_fn_args *list)
 {
-    edge_fn_arg        *l = list->list;
-    edge_fn_arg        *e = l + list->count;
+    Edge_fn_arg        *l = list->list;
+    Edge_fn_arg        *e = l + list->count;
 
     while (l < e) {
         l->fn(l->arg);
@@ -60,17 +60,25 @@ void edge_run(edge_fn_args *list)
     }
 }
 
-void edge_set(edge *e, bit value)
+void Edge_set(Edge *e, Bit value)
 {
-    bit                 old = e->value;
+    if (value)
+        Edge_hi(e);
+    else
+        Edge_lo(e);
+}
 
-    if (value == old)
+void Edge_hi(Edge *e)
+{
+    if (e->value)
         return;
-
-    e->value = value;
-
-    if (value > old)
-        edge_run(&e->rise);
-    if (value < old)
-        edge_run(&e->fall);
+    e->value = 1;
+    Edge_run(&e->rise);
+}
+void Edge_lo(Edge *e)
+{
+    if (!e->value)
+        return;
+    e->value = 0;
+    Edge_run(&e->fall);
 }

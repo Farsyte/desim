@@ -31,21 +31,21 @@ static void tock(state * arg)
     arg->tocks++;
 }
 
-void edge_bench()
+void Edge_bench()
 {
-    edge                e[1];
+    Edge                e[1];
     state               s[1];
 
-    edge_init(e);
+    Edge_init(e);
 
     for (unsigned long i = 0; i < 100; ++i) {
-        edge_rise(e, tick, s);
-        edge_fall(e, tock, s);
+        Edge_rise(e, tick, s);
+        Edge_fall(e, tock, s);
     }
 
     for (unsigned long i = 0; i < 10; ++i) {
-        edge_set(e, 1);
-        edge_set(e, 0);
+        Edge_set(e, 1);
+        Edge_set(e, 0);
     }
 
     unsigned long       max_iter = 1000;
@@ -58,8 +58,8 @@ void edge_bench()
 
         t0 = rtc();
         for (unsigned long i = 0; i < max_iter; ++i) {
-            edge_set(e, 1);
-            edge_set(e, 0);
+            Edge_set(e, 1);
+            Edge_set(e, 0);
         }
         dt = rtc() - t0;
         if (dt >= mint)
@@ -73,13 +73,13 @@ void edge_bench()
 
 
     fprintf(stderr, "\n");
-    fprintf(stderr, "edge benchmark:\n");
+    fprintf(stderr, "Edge benchmark:\n");
     fprintf(stderr, "  count is %lu ticks, %lu tocks\n",
             s->ticks, s->tocks);
     fprintf(stderr, "  elapsed time is %.3f ms\n", dt * 1000.0);
 
     double              ns_per_call =
-      dt * 1000000000.0 / (s->ticks + s->tocks + 1);
+      dt * 1000000000.0 / (s->ticks + s->tocks);
 
     fprintf(stderr, "  time per count is %.3f ns\n", ns_per_call);
     fprintf(stderr, "\n");
@@ -100,38 +100,38 @@ SVC(s1);
 SVC(s2);
 SVC(s3);
 
-void edge_bist()
+void Edge_bist()
 {
-    edge                a[1];
-    edge                b[1];
-    edge                c[1];
+    Edge                a[1];
+    Edge                b[1];
+    Edge                c[1];
 
-    edge_init(a);
-    edge_init(b);
-    edge_init(c);
+    Edge_init(a);
+    Edge_init(b);
+    Edge_init(c);
 
-    edge_rise(a, s1, "a↑");
-    edge_rise(a, s2, "a↑");
-    edge_fall(a, s3, "a↓");
+    Edge_rise(a, s1, "a↑");
+    Edge_rise(a, s2, "a↑");
+    Edge_fall(a, s3, "a↓");
 
-    edge_rise(b, s2, "b↑");
-    edge_fall(b, s3, "b↓");
+    Edge_rise(b, s2, "b↑");
+    Edge_fall(b, s3, "b↓");
 
-    edge_rise(c, s1, "c↑");
-    edge_fall(c, s3, "c↓");
+    Edge_rise(c, s1, "c↑");
+    Edge_fall(c, s3, "c↓");
 
     for (int i = 0; i < 3; ++i) {
-        edge_set(a, 1);
-        edge_set(b, 1);
-        edge_set(c, 1);
-        edge_set(a, 0);
-        edge_set(b, 0);
-        edge_set(c, 0);
+        Edge_set(a, 1);
+        Edge_set(b, 1);
+        Edge_set(c, 1);
+        Edge_set(a, 0);
+        Edge_set(b, 0);
+        Edge_set(c, 0);
     }
 
     // PASS if output matches the reference output.
 
-    // TODO add unit tests for "edge" facility
-    edge_bench();
-    printf("edge_bist complete\n");
+    // TODO add unit tests for "Edge" facility
+    Edge_bench();
+    printf("Edge_bist complete\n");
 }
