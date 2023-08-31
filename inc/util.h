@@ -1,1 +1,3 @@
-extern char        *format(const char *fmt, ...);
+#include "sim_types.h"
+
+extern Cstr         format(Cstr fmt, ...);

@@ -54,9 +54,6 @@ IFLAGS          = ${IDIRS:%=-I%}
 
 DBGOPT          = $(DBG) $(OPT)
 
-# Set the compiler warning flags.
-WFLAGS		= -W -Wall -Wextra -Wpedantic
-
 CFLAGS          =  ${STD} ${IFLAGS}            ${DBGOPT}  ${WFLAGS}
 
 LDFLAGS         = ${LDIRS:%=-L%}

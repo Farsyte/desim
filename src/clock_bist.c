@@ -67,10 +67,10 @@ void Clock_bist()
     UNIT = 0;
 
     Tau                 rises = 0;
-    Edge_rise(&CLOCK, clock_hi, &rises);
+    EDGE_RISE(CLOCK, clock_hi, &rises);
 
     Tau                 falls = 0;
-    Edge_fall(&CLOCK, clock_lo, &falls);
+    EDGE_FALL(CLOCK, clock_lo, &falls);
 
     for (int i = 1; i <= 18; ++i) {
         Clock_cycle();
@@ -83,5 +83,6 @@ void Clock_bist()
     assert(TAU == 1000);
 
     Clock_bench();
+
     printf("Clock_bist complete\n");
 }

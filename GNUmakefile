@@ -7,6 +7,8 @@ CC		:= gcc
 DBG             := -g
 OPT             := -O2
 STD		:= --std=gnu99
+WFLAGS		:= -W -Wall -Wextra -Wpedantic
+WFLAGS		+= -Wno-missing-field-initializers
 
 include GNUmakefile.rules
 

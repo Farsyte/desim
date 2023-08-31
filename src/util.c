@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char               *format(const char *fmt, ...)
+Cstr format(Cstr fmt, ...)
 {
     va_list             ap;
     char               *result;

@@ -2,17 +2,24 @@
 
 #include <stdio.h>
 
-Edge                CLOCK;
+#include "stub.h"
+#include "util.h"
 
-static Tau          p_num;
-static Tau          p_den;
-static Tau          excess;
+Edge                CLOCK = { {"CLOCK"} };
+
+// static init fields to match an 18.00 MHz clock
+static Tau          p_num = 1000;
+static Tau          p_den = 18;
+static Tau          excess = 0;
 
 // Initialize the clock with period (num/den) ns.
 // Or think of this as (den*1000/num) MHz.
 void Clock_init(Tau period_num, Tau period_den)
 {
-    Edge_init(&CLOCK);
+    CLOCK->name = format("CLOCK_%.0fMHz_%.0fNS",
+                         p_den * 1000.0 / p_num, p_num * 1.0 / p_den);
+
+    Edge_init(CLOCK);
     p_num = period_num;
     p_den = period_den;
     excess = 0;
@@ -28,7 +35,7 @@ static void time_passes()
 
 void Clock_cycle()
 {
-    Edge_hi(&CLOCK);
-    Edge_lo(&CLOCK);
+    Edge_hi(CLOCK);
+    Edge_lo(CLOCK);
     time_passes();
 }

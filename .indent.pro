@@ -50,10 +50,24 @@
 
 -TFILE
 
--TEdge_fn_arg
--TEdge_fn_args
--TEdge_fn
+-TEdgeArg
+-TEdgeFn
+-TEdgeFp
+-TsEdgeFA
+-TpEdgeFA
+-TEdgeSL
+-TsEdge
 -TEdge
+-TpEdge
 
+-Tuint8_t
+-Tuint16_t
+
+-TBit
+-TByte
+-TWord
+
+-TCstr
+-TName
 
 -TTau
