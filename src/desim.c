@@ -9,6 +9,7 @@
 #include "timing_check.h"
 
 #include "gen8224.h"
+#include "ctl8228.h"
 
 int main(int argc, char **argv)
 {
@@ -20,6 +21,7 @@ int main(int argc, char **argv)
     Clock_bist();
     timing_check_bist();
     Gen8224_bist();
+    Ctl8228_bist();
 
     rtc_bist();
 
