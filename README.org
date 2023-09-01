@@ -8,31 +8,31 @@ computers from fifty years ago, but to avoid having anything in the
 framework that is inherently specific to any particular simulated
 system beyond the fundamental scope of the project
 
-** Discrete, not Continuous
+** PROJECT DOWNCODE WORK IN PROGRESS
 
-The simulation proceeds by evaluating portions of the system at
-discrete times, and no provision is made for tracking what happens
-between the ticks of the simulation.
+In this branch I once again wipe away the code and start from
+scratch, implementing what I have learned from experiments that
+depended on C++ classes and lambda expressions.
 
-*** Actions
+I think I can do this in C99, and despite all the C++ talk about
+zero cost abstractions, I think I can make it faster.
 
-The unit of work within the simulation is an Action, which is
-expressed as a C++ Lambda expression and a simuilated time at which to
-execute it. The lambda expression takes no arguments and returns no
-value. The current simulated time is a fundamental truth that is
-available globally.
+** Unconventional Naming Conventions
 
-Most actions have delayed consequences, which are achieved by having
-code running in the action activate an action with a time in the
-future, which applies the consequence. For example, if a module wishes
-to place data on a data bus 20ns after a rising edge of a clock, then
-it has an action attached to the rising clock edge, which activates an
-action to set the data bus at a time 20ns in the future.
+Follow the rule: Code in the Language of the Domain.
 
-The collection of Actions is at the core of the simulation; placing
-actions into this collection, and fetching the action with lowest
-scheduled time, are expected to be the "hot path" through the code,
-and will likely be first on the optimization bench.
+In the domain of old computers I want to simulate, signals names are
+written in UPPERCASE, so I will follow this convention when naming
+variables representing the states of signals.
+
+Several years of total immersion in Java has left me actually liking
+the idea of using Capitalized words for class names, while still
+keeping the C convention of Keep It Short.
+
+Examples:
+- TAU is the time variable, of type Tau.
+- CLOCK is the clock signal, of type Edge.
+
 
 ** Digital, not Analog
 
@@ -41,96 +41,51 @@ fundamental unit of storage is the Bit, which can be 0 or 1. To
 simplify simulation of systems that inherently cluster Bits as a
 binary number (such as the Address and Data busses in most
 processors), some values may take on an unsigned 8-bit, 16-bit, or
-larger value.
+larger value. Accordingly, simulations are expected to provide larger
+data types appropriate to their domain (such as Byte and Word).
 
-Floating point might appear, but only in the context of simplification
-of the simulation of a floating point unit. It would represent 32 or
-64 bits that the simulated module is using in a simulated floating
-point context.
+** Discrete, not Continuous
 
-** Modules and Signals
+The simulation proceeds by evaluating portions of the system at
+discrete times, and no provision is made for tracking what happens
+between the ticks of the simulation.
 
-The abstraction being simulated comprises a collection of Modules, and
-a collection of Signals. This is nothing new or significant, and in
-fact this section exists only to commit to using those specific names.
+** Edge
 
-Signals are the mechanism used by Modules to communicate. Modules may
-publish values onto signals, and may observe the value of signals.
+Objects of type "edge" represent a special signal in the system that
+allows code to be notified on rising and falling edges. Each such
+object has a current value, a list of functions (each with an
+argument) to call after the value increases, and a list of functions
+(each with an argument) to call after the value decreases.
 
-*** Bus Signals
+** Functions
 
-Some signals merely contain the most recent value set by a module,
-which other modules can observe (often done within edge-triggered code
-connected to a proper Edge signal).
+The fundamental unit of work is a function call that implements some
+fragment of logic within the system. These are plain old C functions
+that take a pointer to some context, and return nothing.
 
-*** Edge Signals
+** Bus Values
 
-Some signals allow "edge triggered" semantics. Modules may, during
-initialization, specify some code to be run on the rising or falling
-edge of the signal. The major use case of this is to store a 0 or a 1,
-which gives "rising" and "falling" the obvious meaning.
+These values are plain old C data of an appropriate size, which can be
+observed and modified by the various logic functions. Generally, where
+the function context represents a functional unit, that structure will
+contain storage for busses owned by the unit, or pointers to storage
+in other structures that own the data.
 
-***# When Edges Trigger Edges
+** Time
 
-It is beneficial to specify behavior in a particular case.
+Time is represented by two global variables in the system, both of
+which are of type Tau, which is intended to be a type that can
+maintain a monotonically increasing value, without loss of precision,
+across the whole span of any useful simulation.
 
-If several modules are edge-triggered by a specific signal, and each
-of those edge-triggered bits of code could change the value of other
-Edge signals, we specify that the bits of code are run BREADTH FIRST
-order.
+The two variables are TAU and UNIT. TAU represents elapsed simulated
+time in some unit useful to the user -- 64-bit unsigned nanoseconds
+seems to be suitable for simluation of 50 year old digital logic. UNIT
+is expected to increment once for each cycle of the fastest clock in
+the system, allowing UNIT to easily be used as an array index when
+working with signal trace data for display.
 
-That is, service methods are executed in an order AS IF the act of
-changing an edge placed them all on a queue, then ran each one in
-queue order; and any activities requested by a service are placed on
-the end of the FIFO so that any edge propagation flows out all of the
-cascading outputs in parallel, rather than flowing down one path, then
-starting the next.
+*** ---
 
-During the cascading forward of edge triggered events, the simulation
-is not incrementing the tick counter.
-
-*** Conflicts: Signals that Float
-
-Some signals of width N can take on 2^N values, or can be Floating. If
-multiple modules can publish data in a Signal, then each should take
-care to set the signal state to Floating before another publishes its
-value.
-
-A Bus that may be Floating or may be driven by any of several modules
-might be implemented by having the Bus reference the module driving
-it; this might be efficiently done by having the Bus represent the
-value with a pointer to the storage, in the driving module, of the
-data for the bus; a floating bus would be a pointer to data the Bus
-owns, representing the bus state that would be observed when it is
-floating.
-
-*** Conflicts: Wire-And and Wire-Or Signals are Modules
-
-Some signals comprise N independent bits, which take on a high or low
-value when not driven, but have multiple modules that can drive them;
-if any module drives any bit to the other value, the other value is
-observed by all observers.
-
-This raises the spectre of multiple modules driving a signal, and one
-of them releasing it -- the simulation needs a clever way to update
-the value of the signal based on all of the other driving modules.
-
-As this requires a bit of code to run when a module de-asserts a
-wire-or or wire-and signal, this fits as a Module within this
-simulation, which can notice the transition of one input and
-re-generate the output properly.
-
-** Level of Detail Unspecified by Framework
-
-Within this framework, it is possible to build a system that simulates
-down to the individual gates within a clock generator, requiring ticks
-to manage the transitions of whatever signal is oscillating. Or one
-might build a system where each tick represents one machine cycle, or
-one instruction, or other unit of work appropriate to the application
-of the framework.
-
-My initial application, for the moment, is inteded to be a
-signal-accurate cycle-accurate simulation of an 8080 based system,
-stepping the tick with period 55.555 ns, corresponding to the rising
-edges of the primary oscillator from which the two-phase clock is
-derived in (for example) the Imsai 8080.
+** ---

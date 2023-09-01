@@ -2,35 +2,6 @@
 #
 # Big Bunch of Make rules that I have accumulated
 
-# This set of rules is often used in big recursive builds.
-# keeping some of the critical bits of that logic in case
-# this project grows to that level.
-#
-# People who reflexively hate recursive Make projects
-# have never seen one done cleanly and well; it is too
-# easy to do it very very badly.
-
-LAST            := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
-
-ifeq ($(TOP),)
-export TOP      := $(shell cd $(dir $(LAST)); /bin/pwd)/
-endif
-
-# This particular project never needs Make to advertise
-# its working directory, so we can shut off all those
-# reduncant messages.
-MAKEFLAGS       += --no-print-directory
-
-M		= $C ${MAKE} ${MFLAGS}
-
-# Pick your C and C++ compilers
-CC		:= gcc
-CXX		:= g++
-
-# Pick which versions of C and C++ you want to use.
-STD		= --std=gnu99
-XSTD		= --std=gnu++14
-
 # Allow me to use "make Q=" to expose the commands
 # being executed, but normally have them hidden.
 
@@ -44,306 +15,101 @@ C               = $Q $I
 RF              = $C /bin/rm -f
 RD              = $C /bin/rm -fr
 
+
+MAKEFLAGS	:= --no-print-directory
+
 # Allow me to override certain items from the command line.
 NOOP            = $C true
 E               = $C echo
 P		= $C printf
 
-DDIR            = ${ABSDIR}dep/
-IDIR            = ${ABSDIR}inc/
-SDIR            = ${ABSDIR}src/
-ODIR            = ${ABSDIR}obj/
-LDIR            = ${ABSDIR}lib/
-BDIR            = ${ABSDIR}bin/
+DDIR            = dep/
+IDIR            = inc/
+SDIR            = src/
+ODIR            = obj/
+LDIR            = lib/
+BDIR            = bin/
+TDIR            = test/
+LOGD		= log/
 
-# Each GNUmakefile should set LIBS to the names of
-# the personal libraries to link. Example:
-# LIBS            = util
-
-# Each GNUmakefile should set SYSLIBS to the names of
-# the system libraries to link. Example:
-# SYSLIBS         = pthread ncurses m
+# LIBS            = util                        # add personal libraries
+# SYSLIBS         = pthread ncurses m           # add system libraries
 
 ALLLIBS         = $(LIBS) $(SYSLIBS)
 
 HSRC            := ${wildcard ${IDIR}*.h}
 CSRC            := ${wildcard ${SDIR}*.c}
-CCSRC           := ${wildcard ${SDIR}*.cc}
-HHSRC           := ${wildcard ${IDIR}*.hh}
 
-OBJS            = ${CSRC:${SDIR}%.c=${ODIR}%.o} \
-	          ${CCSRC:${SDIR}%.cc= ${ODIR}%.o}
+OBJS            = ${CSRC:${SDIR}%.c=${ODIR}%.o}
+DEPS            = ${CSRC:${SDIR}%.c=${DDIR}%.d}
+LOGS            = ${CSRC:${SDIR}%.c=${LOGD}cc-%.err} \
+		  ${PROG:%=${LOGD}ld-%.log} \
+		  ${PROG:%=${LOGD}ld-%.err}
 
-DEPS            = ${CSRC:${SDIR}%.c=${DDIR}%.d} \
-	          ${CCSRC:${SDIR}%.cc= ${DDIR}%.d}
-
-# If the GNUmakefile is building a library, it should
-# set LIBNAME to the name of the library. Example:
-# LIBNAME         = util
-LIBA		:= ${LIBNAME:%=${LDIR}%.a}
-
-# If I were compiling a separate binary from each source file,
-# this would create the big bag of bins. I have used this in
-# other places, but for most projects, you just want to build
-# all the sources into one binary.
-#
-# The calling GNUmakefile sets "CPROG" to the name
-# of the program to use the C linker, or "XPROG" to th
-# name of the program to use the C++ linker.
-#
-# ...           = ${OBJS:${ODIR}%.o=${BDIR}%}
-CINST		= ${CPROG:%=${BDIR}%}
-XINST		= ${XPROG:%=${BDIR}%}
-BINS            = ${CINST} ${XINST}
+INST		= ${PROG:%=${BDIR}%}
 
 IDIRS           = ${IDIR}
-XIDIRS		= ${IDIR}
 LDIRS           = ${LDIR}
-XLDIRS          = ${LDIR}
 
 IFLAGS          = ${IDIRS:%=-I%}
-XIFLAGS         = ${XIDIRS:%=-I%}
 
-# Set the compiler debug and optimizer level.
-# For now, enable debug and shut off the optimizer
-# so I can see proper backtraces.
-DBGOPT          = -g -O0
-
-# Set the compiler warning flags.
-WFLAGS		= -W -Wall -Wextra -Wpedantic
-XWFLAGS		= -W -Wall -Wextra -Wpedantic
+DBGOPT          = $(DBG) $(PRO) $(OPT) $(COV)
 
 CFLAGS          =  ${STD} ${IFLAGS}            ${DBGOPT}  ${WFLAGS}
-CXXFLAGS        = ${XSTD} ${IFLAGS} ${XIFLAGS} ${DBGOPT} ${XWFLAGS}
 
-LDFLAGS         = ${LDIRS:%=-L%}
-XLDFLAGS        = ${XLDIRS:%=-L%}
+LDFLAGS         = ${PRO} $(COV) ${LDIRS:%=-L%}
 LDLIBS          = ${ALLLIBS:%=-l%}
 
-LINK.cc		= $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(XLDFLAGS) $(TARGET_ARCH)
-
-# The archiver "AR" is used to build static libraries.
-#
-# The command "ar ucs {LIBA} {OBJS}"
-# will update the OBJS in the library
-# if the OBJ is not in the library
-# or the OBJ is newer than the one in the library,
-# replacing the one in the library.
-
-AR		:= $(which ar 2>/dev/null)
-ARFLAGS		:= ucs
+LINK.c		= $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(TARGET_ARCH)
 
 # Start building up the "make" targets that I like to always have.
 
 default::               		; ${NOOP}
-all::                                   ; ${NOOP}
+all::			default         ; ${NOOP}
 clean::                                 ; ${NOOP}
 
-all::			default
-world::
-	$M clean
-	$M all
+# Create a "make world" target that first builds
+# the whole "clean" target, then when it is done
+# successfully, works on the "all" target.
 
-# include any and all dependency files. This starts empty with
+world::
+	$C ${MAKE} clean
+	$C ${MAKE} all
+
+# Include any and all dependency files. This starts empty with
 # a fresh (or cleaned) area, but adds dependencies so we can
 # recompile sources that depend on headers that changed.
 
 include ${wildcard ${DDIR}*.d} /dev/null
 
 objs::		${OBJS}
-all::			objs
+default::	objs
+clean::
+	${RF} ${OBJS} ${DEPS}
 
-# Start building up the compilation rules. If destination directories
-# could be missing, these would need to maybe create them; I have decided
-# this time to just always assure they exist. Yay empty .gitignore files.
+inst::		${INST}
+default::	inst
+clean::
+	${RF} ${INST}
+
+# Modified compile rule
+# - locate sources and objects in their proper directories
+# - generate a breadcrumb output line
+# - by default, do not echo the command lines
+# - maintain a dependency file for each source file
 
 ${ODIR}%.o:    ${SDIR}%.c
-	$E 'compiling $* ...'
+	$E 'cc $* ...'
 	$Q $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< -MM | \
-	 sed '1s|^$*\.o: |$@: |' > ${DDIR}$*.d
-	$Q $(COMPILE.c) $(OUTPUT_OPTION) $<
+	   sed '1s|^$*\.o: |$@: |' > ${DDIR}$*.d
+	$Q $(COMPILE.c) $(OUTPUT_OPTION) $< 2> ${LOGD}cc-$*.err
 
-${ODIR}%.o:    ${SDIR}%.cc
-	$E 'compiling $* ...'
-	$Q $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< -MM | \
-	 sed '1s|^$*\.o: |$@: |' > ${DDIR}$*.d
-	$Q $(COMPILE.cc) $(OUTPUT_OPTION) $<
+${INST}:	${OBJS}
+	$E 'link ${PROG} ...'
+	$Q ${LINK.c} ${OBJS} ${LOADLIBES} ${LDLIBS} -o '$@' 2> ${LOGD}ld-${PROG}.log
 
-${LDIR}%.a:     ${OBJS}
-	$E 'library $* ...'
-	$(AR) $(ARFLAGS) $@ $^
-
-${BDIR}%:      ${SDIR}%.c
-	$E 'linking $* ...'
-	$Q $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< -MM | \
-	 sed '1s|^$*\.o: |$@: |' > ${DDIR}$*.d
-	$Q ${LINK.c} $< ${LOADLIBES} ${LDLIBS} -o $@
-
-${BDIR}%:      ${SDIR}%.cc
-	$E 'linking $* ...'
-	$Q $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< -MM | \
-	 sed '1s|^$*\.o: |$@: |' > ${DDIR}$*.d
-	$Q ${LINK.cc} $< ${LOADLIBES} ${LDLIBS} -o $@
-
-${CINST}:	${OBJS}
-	$E 'linking ${CPROG} ...'
-	$Q ${LINK.c} ${OBJS} ${LOADLIBES} ${LDLIBS} -o $@
-
-${XINST}:	${OBJS}
-	$E 'linking ${XPROG} ...'
-	$Q ${LINK.cc} ${OBJS} ${LOADLIBES} ${LDLIBS} -o $@
-
-default::	${BINS}
-
-clean::                                 ; ${RF} ${BINS}
-clean::                                 ; ${RD} ${OBJS}
-clean::                                 ; ${RD} ${DEPS}
-
-wut:
-ifneq ($(LAST),)
-	$P '%-32s: "%s"\n' 'LAST' '$(LAST)'
-endif
-ifneq ($(TOP),)
-	$P '%-32s: "%s"\n' 'TOP' '$(TOP)'
-endif
-ifneq ($(MAKEFLAGS),)
-	$P '%-32s: "%s"\n' 'MAKEFLAGS' '$(MAKEFLAGS)'
-endif
-ifneq ($(CC),)
-	$P '%-32s: "%s"\n' 'CC' '$(CC)'
-endif
-ifneq ($(CXX),)
-	$P '%-32s: "%s"\n' 'CXX' '$(CXX)'
-endif
-ifneq ($(STD),)
-	$P '%-32s: "%s"\n' 'STD' '$(STD)'
-endif
-ifneq ($(XSTD),)
-	$P '%-32s: "%s"\n' 'XSTD' '$(XSTD)'
-endif
-ifneq ($(Q),)
-	$P '%-32s: "%s"\n' 'Q' '$(Q)'
-endif
-ifneq ($(I),)
-	$P '%-32s: "%s"\n' 'I' '$(I)'
-endif
-ifneq ($(C),)
-	$P '%-32s: "%s"\n' 'C' '$(C)'
-endif
-ifneq ($(RF),)
-	$P '%-32s: "%s"\n' 'RF' '$(RF)'
-endif
-ifneq ($(RD),)
-	$P '%-32s: "%s"\n' 'RD' '$(RD)'
-endif
-ifneq ($(NOOP),)
-	$P '%-32s: "%s"\n' 'NOOP' '$(NOOP)'
-endif
-ifneq ($(E),)
-	$P '%-32s: "%s"\n' 'E' '$(E)'
-endif
-ifneq ($(P),)
-	$P '%-32s: "%s"\n' 'P' '$(P)'
-endif
-ifneq ($(DDIR),)
-	$P '%-32s: "%s"\n' 'DDIR' '$(DDIR)'
-endif
-ifneq ($(IDIR),)
-	$P '%-32s: "%s"\n' 'IDIR' '$(IDIR)'
-endif
-ifneq ($(SDIR),)
-	$P '%-32s: "%s"\n' 'SDIR' '$(SDIR)'
-endif
-ifneq ($(ODIR),)
-	$P '%-32s: "%s"\n' 'ODIR' '$(ODIR)'
-endif
-ifneq ($(LDIR),)
-	$P '%-32s: "%s"\n' 'LDIR' '$(LDIR)'
-endif
-ifneq ($(BDIR),)
-	$P '%-32s: "%s"\n' 'BDIR' '$(BDIR)'
-endif
-ifneq ($(ALLLIBS),)
-	$P '%-32s: "%s"\n' 'ALLLIBS' '$(ALLLIBS)'
-endif
-ifneq ($(HSRC),)
-	$P '%-32s: "%s"\n' 'HSRC' '$(HSRC)'
-endif
-ifneq ($(CSRC),)
-	$P '%-32s: "%s"\n' 'CSRC' '$(CSRC)'
-endif
-ifneq ($(CCSRC),)
-	$P '%-32s: "%s"\n' 'CCSRC' '$(CCSRC)'
-endif
-ifneq ($(HHSRC),)
-	$P '%-32s: "%s"\n' 'HHSRC' '$(HHSRC)'
-endif
-ifneq ($(OBJS),)
-	$P '%-32s: "%s"\n' 'OBJS' '$(OBJS)'
-endif
-ifneq ($(DEPS),)
-	$P '%-32s: "%s"\n' 'DEPS' '$(DEPS)'
-endif
-ifneq ($(LIBA),)
-	$P '%-32s: "%s"\n' 'LIBA' '$(LIBA)'
-endif
-ifneq ($(CINST),)
-	$P '%-32s: "%s"\n' 'CINST' '$(CINST)'
-endif
-ifneq ($(XINST),)
-	$P '%-32s: "%s"\n' 'XINST' '$(XINST)'
-endif
-ifneq ($(BINS),)
-	$P '%-32s: "%s"\n' 'BINS' '$(BINS)'
-endif
-ifneq ($(IDIRS),)
-	$P '%-32s: "%s"\n' 'IDIRS' '$(IDIRS)'
-endif
-ifneq ($(XIDIRS),)
-	$P '%-32s: "%s"\n' 'XIDIRS' '$(XIDIRS)'
-endif
-ifneq ($(LDIRS),)
-	$P '%-32s: "%s"\n' 'LDIRS' '$(LDIRS)'
-endif
-ifneq ($(XLDIRS),)
-	$P '%-32s: "%s"\n' 'XLDIRS' '$(XLDIRS)'
-endif
-ifneq ($(IFLAGS),)
-	$P '%-32s: "%s"\n' 'IFLAGS' '$(IFLAGS)'
-endif
-ifneq ($(XIFLAGS),)
-	$P '%-32s: "%s"\n' 'XIFLAGS' '$(XIFLAGS)'
-endif
-ifneq ($(DBGOPT),)
-	$P '%-32s: "%s"\n' 'DBGOPT' '$(DBGOPT)'
-endif
-ifneq ($(WFLAGS),)
-	$P '%-32s: "%s"\n' 'WFLAGS' '$(WFLAGS)'
-endif
-ifneq ($(XWFLAGS),)
-	$P '%-32s: "%s"\n' 'XWFLAGS' '$(XWFLAGS)'
-endif
-ifneq ($(CFLAGS),)
-	$P '%-32s: "%s"\n' 'CFLAGS' '$(CFLAGS)'
-endif
-ifneq ($(CXXFLAGS),)
-	$P '%-32s: "%s"\n' 'CXXFLAGS' '$(CXXFLAGS)'
-endif
-ifneq ($(LDFLAGS),)
-	$P '%-32s: "%s"\n' 'LDFLAGS' '$(LDFLAGS)'
-endif
-ifneq ($(XLDFLAGS),)
-	$P '%-32s: "%s"\n' 'XLDFLAGS' '$(XLDFLAGS)'
-endif
-ifneq ($(LDLIBS),)
-	$P '%-32s: "%s"\n' 'LDLIBS' '$(LDLIBS)'
-endif
-ifneq ($(LINK.cc),)
-	$P '%-32s: "%s"\n' 'LINK.cc' '$(LINK.cc)'
-endif
-ifneq ($(AR),)
-	$P '%-32s: "%s"\n' 'AR' '$(AR)'
-endif
-ifneq ($(ARFLAGS),)
-	$P '%-32s: "%s"\n' 'ARFLAGS' '$(ARFLAGS)'
-endif
+clean::
+	${RF} ${LOGS}
+	${RF} ${INST}
+	${RD} ${OBJS}
+	${RD} ${DEPS}
