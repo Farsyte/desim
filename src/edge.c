@@ -87,6 +87,11 @@ void Edge_run(EdgeSL sl)
     }
 }
 
+Bit Edge_get(Edge e)
+{
+    return e->value;
+}
+
 void Edge_set(Edge e, Bit value)
 {
     if (value)

@@ -41,6 +41,7 @@ extern void         Edge_rise(Edge e, EdgeFn fn, void *arg,
 extern void         Edge_fall(Edge e, EdgeFn fn, void *arg,
                               Name fn_name, Name arg_name);
 
+extern Bit          Edge_get(Edge e);
 extern void         Edge_set(Edge e, Bit value);
 extern void         Edge_hi(Edge e);
 extern void         Edge_lo(Edge e);

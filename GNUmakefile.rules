@@ -53,14 +53,14 @@ LDIRS           = ${LDIR}
 
 IFLAGS          = ${IDIRS:%=-I%}
 
-DBGOPT          = $(DBG) $(OPT)
+DBGOPT          = $(DBG) $(PRO) $(OPT) $(COV)
 
 CFLAGS          =  ${STD} ${IFLAGS}            ${DBGOPT}  ${WFLAGS}
 
-LDFLAGS         = ${LDIRS:%=-L%}
+LDFLAGS         = ${PRO} $(COV) ${LDIRS:%=-L%}
 LDLIBS          = ${ALLLIBS:%=-l%}
 
-LINK.c		= $(CC) $(CXXFLAGS) $(CPPFLAGS) $(XLDFLAGS) $(TARGET_ARCH)
+LINK.c		= $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(TARGET_ARCH)
 
 # Start building up the "make" targets that I like to always have.
 

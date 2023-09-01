@@ -8,6 +8,7 @@ typedef struct {
     Name                name;
     Tau                 lb, ub;
     Tau                 lo, hi;
+    unsigned            count;
     Tau                 from;
     Tau                 elapsed;
 }                  *pTimingCheck, TimingCheck[1];

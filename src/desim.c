@@ -17,11 +17,7 @@ int main(int argc, char **argv)
     Tau_bist();
     Edge_bist();
     Clock_bist();
-
-    // timing_check is testing support code that is used to
-    // monitor change in TAU between two events.
     timing_check_bist();
-
     Gen8224_bist();
 
     printf("%s complete\n", argv[0]);

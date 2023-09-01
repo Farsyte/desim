@@ -77,6 +77,7 @@ void Clock_bist()
         assert(rises == i);
         assert(falls == i);
         assert(UNIT == i);
+        // fprintf(stderr, "%3lu: expected %lu, observed %lu\n", UNIT, (UNIT*500)/9 , TAU);
         assert(TAU == (i * 500) / 9);
     }
 

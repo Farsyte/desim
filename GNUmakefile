@@ -4,8 +4,22 @@ PROG		:= desim
 
 # Select C compiler and flags
 CC		:= gcc
+
+# set PRO to -pg for profiling.
+PRO             :=
+
+# set COV to -fprofile-arcs -ftest-coverage
+# to enable test coverage via gcov
+# (NOT TESTED)
+COV		:=
+
+# set DBG to -g for debugging.
 DBG             := -g
-OPT             := -O2
+
+# set OPT to -O0, -O1, -O2, -O3, or -Ofast
+# for increasing performace.
+OPT             := -O3
+
 STD		:= --std=gnu99
 WFLAGS		:= -W -Wall -Wextra -Wpedantic
 WFLAGS		+= -Wno-missing-field-initializers

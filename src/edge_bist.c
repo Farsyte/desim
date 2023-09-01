@@ -1,10 +1,10 @@
 #include "edge.h"
 
 #include <stdio.h>
-#include <time.h>
 #include <assert.h>
 
 #include "stub.h"
+#include "rtc.h"
 
 const char          a1[] = "HI";
 const char          a2[] = "LO";
@@ -13,13 +13,6 @@ typedef struct state_s {
     unsigned long       ticks;
     unsigned long       tocks;
 } State[1];
-
-static double rtc()
-{
-    struct timespec     tp[1];
-    clock_gettime(CLOCK_MONOTONIC_RAW, tp);
-    return tp->tv_sec + tp->tv_nsec / 1000000000.0;
-}
 
 static void tick(State arg)
 {
@@ -115,6 +108,42 @@ void Edge_bist()
     Edge_init(a);
     Edge_init(b);
     Edge_init(c);
+
+    assert(!Edge_get(a));
+    assert(!Edge_get(b));
+    assert(!Edge_get(c));
+
+    Edge_set(a, 1);
+    Edge_set(b, 1);
+    Edge_set(c, 1);
+
+    assert(Edge_get(a));
+    assert(Edge_get(b));
+    assert(Edge_get(c));
+
+    Edge_set(a, 1);
+    Edge_set(b, 1);
+    Edge_set(c, 1);
+
+    assert(Edge_get(a));
+    assert(Edge_get(b));
+    assert(Edge_get(c));
+
+    Edge_set(a, 0);
+    Edge_set(b, 0);
+    Edge_set(c, 0);
+
+    assert(!Edge_get(a));
+    assert(!Edge_get(b));
+    assert(!Edge_get(c));
+
+    Edge_set(a, 0);
+    Edge_set(b, 0);
+    Edge_set(c, 0);
+
+    assert(!Edge_get(a));
+    assert(!Edge_get(b));
+    assert(!Edge_get(c));
 
     EDGE_RISE(a, s1, "a↑");
     EDGE_RISE(a, s2, "a↑");
