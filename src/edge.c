@@ -31,7 +31,7 @@ void Edge_init(Edge e)
     Edge_list_init(e->fall);
 }
 
-static void Edge_add(Edge e, EdgeSL list, EdgeFn fn, EdgeArg arg,
+static void Edge_add(Edge e, EdgeSL list, EdgeFn fn, void *arg,
                      Name rof, Name fn_name, Name arg_name)
 {
     if (Edge_debug > 0) {
@@ -61,13 +61,13 @@ static void Edge_add(Edge e, EdgeSL list, EdgeFn fn, EdgeArg arg,
     list->count = n + 1;
 }
 
-void Edge_rise(Edge e, EdgeFn fn, EdgeArg arg,
+void Edge_rise(Edge e, EdgeFn fn, void *arg,
                Name fn_name, Name arg_name)
 {
     Edge_add(e, e->rise, fn, arg, "rise", fn_name, arg_name);
 }
 
-void Edge_fall(Edge e, EdgeFn fn, EdgeArg arg,
+void Edge_fall(Edge e, EdgeFn fn, void *arg,
                Name fn_name, Name arg_name)
 {
     Edge_add(e, e->fall, fn, arg, "fall", fn_name, arg_name);
@@ -79,7 +79,10 @@ void Edge_run(EdgeSL sl)
     pEdgeFA             e = l + sl->count;
 
     while (l < e) {
-        l->fn(l->arg);
+        EdgeFn              fn = l->fn;
+        void               *arg = l->arg;
+
+        fn(arg);
         l++;
     }
 }
@@ -99,6 +102,7 @@ void Edge_hi(Edge e)
     e->value = 1;
     Edge_run(e->rise);
 }
+
 void Edge_lo(Edge e)
 {
     if (!e->value)
