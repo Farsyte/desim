@@ -6,6 +6,10 @@ exp="$1"
 shift
 obs="$1"
 shift
+out="$1"
+shift
+
+cp /dev/null "$out"
 
 if [ ! -e "$exp" ]
 then
@@ -20,5 +24,5 @@ then
 fi
 
 printf 'PASS: %s differs from %s\n' "$exp" "$obs"
-diff -wu "$exp" "$obs"
+diff -wu "$exp" "$obs" > "$out" 2>&1
 exit 1

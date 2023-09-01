@@ -5,6 +5,10 @@
 #include "edge.h"
 #include "clock.h"
 
+#include "timing_check.h"
+
+#include "gen8224.h"
+
 int main(int argc, char **argv)
 {
     (void)argc;
@@ -13,6 +17,8 @@ int main(int argc, char **argv)
     Tau_bist();
     Edge_bist();
     Clock_bist();
+    timing_check_bist();
+    Gen8224_bist();
 
-    printf("PASS: the usual BIST are complete.\n");
+    printf("%s complete\n", argv[0]);
 }

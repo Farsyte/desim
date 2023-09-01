@@ -1,10 +1,10 @@
 #include "edge.h"
 
 #include <stdio.h>
-#include <time.h>
 #include <assert.h>
 
 #include "stub.h"
+#include "rtc.h"
 
 const char          a1[] = "HI";
 const char          a2[] = "LO";
@@ -12,35 +12,28 @@ const char          a2[] = "LO";
 typedef struct state_s {
     unsigned long       ticks;
     unsigned long       tocks;
-} state;
+} State[1];
 
-static double rtc()
-{
-    struct timespec     tp[1];
-    clock_gettime(CLOCK_MONOTONIC_RAW, tp);
-    return tp->tv_sec + tp->tv_nsec / 1000000000.0;
-}
-
-static void tick(state * arg)
+static void tick(State arg)
 {
     arg->ticks++;
 }
 
-static void tock(state * arg)
+static void tock(State arg)
 {
     arg->tocks++;
 }
 
 void Edge_bench()
 {
-    Edge                e[1];
-    state               s[1];
+    Edge                e = { {"BENCHEDGE"} };
+    State               s;
 
     Edge_init(e);
 
     for (unsigned long i = 0; i < 100; ++i) {
-        Edge_rise(e, tick, s);
-        Edge_fall(e, tock, s);
+        EDGE_RISE(e, tick, s);
+        EDGE_FALL(e, tock, s);
     }
 
     for (unsigned long i = 0; i < 10; ++i) {
@@ -93,32 +86,74 @@ void Edge_bench()
 
 }
 
-typedef void        svc_t(const char[]);
-#define SVC(fn)  static void fn(const char msg[]) { printf("%s: %s\n", __func__, msg); } static svc_t fn
-
-SVC(s1);
-SVC(s2);
-SVC(s3);
+static void s1(const char msg[])
+{
+    printf("%s: %s\n", __func__, msg);
+}
+static void s2(const char msg[])
+{
+    printf("%s: %s\n", __func__, msg);
+}
+static void s3(const char msg[])
+{
+    printf("%s: %s\n", __func__, msg);
+}
 
 void Edge_bist()
 {
-    Edge                a[1];
-    Edge                b[1];
-    Edge                c[1];
+    Edge                a = { {"SIGA"} };
+    Edge                b = { {"SIGB"} };
+    Edge                c = { {"SIGC"} };
 
     Edge_init(a);
     Edge_init(b);
     Edge_init(c);
 
-    Edge_rise(a, s1, "a↑");
-    Edge_rise(a, s2, "a↑");
-    Edge_fall(a, s3, "a↓");
+    assert(!Edge_get(a));
+    assert(!Edge_get(b));
+    assert(!Edge_get(c));
 
-    Edge_rise(b, s2, "b↑");
-    Edge_fall(b, s3, "b↓");
+    Edge_set(a, 1);
+    Edge_set(b, 1);
+    Edge_set(c, 1);
 
-    Edge_rise(c, s1, "c↑");
-    Edge_fall(c, s3, "c↓");
+    assert(Edge_get(a));
+    assert(Edge_get(b));
+    assert(Edge_get(c));
+
+    Edge_set(a, 1);
+    Edge_set(b, 1);
+    Edge_set(c, 1);
+
+    assert(Edge_get(a));
+    assert(Edge_get(b));
+    assert(Edge_get(c));
+
+    Edge_set(a, 0);
+    Edge_set(b, 0);
+    Edge_set(c, 0);
+
+    assert(!Edge_get(a));
+    assert(!Edge_get(b));
+    assert(!Edge_get(c));
+
+    Edge_set(a, 0);
+    Edge_set(b, 0);
+    Edge_set(c, 0);
+
+    assert(!Edge_get(a));
+    assert(!Edge_get(b));
+    assert(!Edge_get(c));
+
+    EDGE_RISE(a, s1, "a↑");
+    EDGE_RISE(a, s2, "a↑");
+    EDGE_FALL(a, s3, "a↓");
+
+    EDGE_RISE(b, s2, "b↑");
+    EDGE_FALL(b, s3, "b↓");
+
+    EDGE_RISE(c, s1, "c↑");
+    EDGE_FALL(c, s3, "c↓");
 
     for (int i = 0; i < 3; ++i) {
         Edge_set(a, 1);

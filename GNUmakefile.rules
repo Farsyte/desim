@@ -2,12 +2,6 @@
 #
 # Big Bunch of Make rules that I have accumulated
 
-# This particular project never needs Make to advertise
-# its working directory, so we can shut off all those
-# reduncant messages.
-
-MAKEFLAGS       += --no-print-directory
-
 # Allow me to use "make Q=" to expose the commands
 # being executed, but normally have them hidden.
 
@@ -21,6 +15,9 @@ C               = $Q $I
 RF              = $C /bin/rm -f
 RD              = $C /bin/rm -fr
 
+
+MAKEFLAGS	:= --no-print-directory
+
 # Allow me to override certain items from the command line.
 NOOP            = $C true
 E               = $C echo
@@ -33,6 +30,7 @@ ODIR            = obj/
 LDIR            = lib/
 BDIR            = bin/
 TDIR            = test/
+LOGD		= log/
 
 # LIBS            = util                        # add personal libraries
 # SYSLIBS         = pthread ncurses m           # add system libraries
@@ -44,6 +42,9 @@ CSRC            := ${wildcard ${SDIR}*.c}
 
 OBJS            = ${CSRC:${SDIR}%.c=${ODIR}%.o}
 DEPS            = ${CSRC:${SDIR}%.c=${DDIR}%.d}
+LOGS            = ${CSRC:${SDIR}%.c=${LOGD}cc-%.err} \
+		  ${PROG:%=${LOGD}ld-%.log} \
+		  ${PROG:%=${LOGD}ld-%.err}
 
 INST		= ${PROG:%=${BDIR}%}
 
@@ -52,17 +53,14 @@ LDIRS           = ${LDIR}
 
 IFLAGS          = ${IDIRS:%=-I%}
 
-DBGOPT          = $(DBG) $(OPT)
-
-# Set the compiler warning flags.
-WFLAGS		= -W -Wall -Wextra -Wpedantic
+DBGOPT          = $(DBG) $(PRO) $(OPT) $(COV)
 
 CFLAGS          =  ${STD} ${IFLAGS}            ${DBGOPT}  ${WFLAGS}
 
-LDFLAGS         = ${LDIRS:%=-L%}
+LDFLAGS         = ${PRO} $(COV) ${LDIRS:%=-L%}
 LDLIBS          = ${ALLLIBS:%=-l%}
 
-LINK.c		= $(CC) $(CXXFLAGS) $(CPPFLAGS) $(XLDFLAGS) $(TARGET_ARCH)
+LINK.c		= $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(TARGET_ARCH)
 
 # Start building up the "make" targets that I like to always have.
 
@@ -104,13 +102,14 @@ ${ODIR}%.o:    ${SDIR}%.c
 	$E 'cc $* ...'
 	$Q $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< -MM | \
 	   sed '1s|^$*\.o: |$@: |' > ${DDIR}$*.d
-	$Q $(COMPILE.c) $(OUTPUT_OPTION) $<
+	$Q $(COMPILE.c) $(OUTPUT_OPTION) $< 2> ${LOGD}cc-$*.err
 
 ${INST}:	${OBJS}
 	$E 'link ${PROG} ...'
-	$Q ${LINK.c} ${OBJS} ${LOADLIBES} ${LDLIBS} -o '$@'
+	$Q ${LINK.c} ${OBJS} ${LOADLIBES} ${LDLIBS} -o '$@' 2> ${LOGD}ld-${PROG}.log
 
 clean::
+	${RF} ${LOGS}
 	${RF} ${INST}
 	${RD} ${OBJS}
 	${RD} ${DEPS}

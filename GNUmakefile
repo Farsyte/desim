@@ -4,39 +4,57 @@ PROG		:= desim
 
 # Select C compiler and flags
 CC		:= gcc
+
+# set PRO to -pg for profiling.
+PRO             :=
+
+# set COV to -fprofile-arcs -ftest-coverage
+# to enable test coverage via gcov
+# (NOT TESTED)
+COV		:=
+
+# set DBG to -g for debugging.
 DBG             := -g
-OPT             := -O2
+
+# set OPT to -O0, -O1, -O2, -O3, or -Ofast
+# for increasing performace.
+OPT             := -O3
+
 STD		:= --std=gnu99
+WFLAGS		:= -W -Wall -Wextra -Wpedantic
+WFLAGS		+= -Wno-missing-field-initializers
 
 include GNUmakefile.rules
 
+WAITF		:= ${CSRC} ${HSRC} ${INST}
+WAITE		:= modify delete
+
 run::		${INST}
-	$C ${INST}
+	$C ${INST} > ${LOGD}run-${PROG}.log 2> ${LOGD}run-${PROG}.err
 
-OBSLOG		:= ${PROG:%=${TDIR}%.obs.log}
-EXPLOG		:= ${PROG:%=${TDIR}%.exp.log}
-CMPLOG		:= ${PROG:%=${TDIR}%.cmp.log}
+TEST_OBS	:= ${PROG:%=${LOGD}run-%.log}
+TEST_EXP	:= ${PROG:%=${LOGD}run-%.log.expected}
+TEST_CMP	:= ${PROG:%=${LOGD}run-%.log.difference}
 
-${TDIR}%.obs.log:	${BDIR}%
-	$< > $@
+${LOGD}run-%.log:	${BDIR}%
+	$< > $@ 2>${LOGD}run-$*.err
 
-${TDIR}%.cmp.log:	${TDIR}%.obs.log
-	$Q bin/check.sh '${TDIR}$*.exp.log' '${TDIR}$*.obs.log'
+${LOGD}run-%.log.difference:	${LOGD}run-%.log
+	$Q bin/check.sh '${LOGD}run-$*.log.expected' $< $@
 
-# Set up a "make rep" rule that I can run repeatedly in another
-# window to monitor that everything is good.
+# Set up a build rule that I can run in a loop,
+# usually with a "make await" between iteraions.
 
-rep::
+loop::
 	$C ${MAKE} cmp
-	$C git status
 
 # Set up a "make cmp" rule that always
 # runs the program and compares the results.
 
 cmp::
-	${RF} '${OBSLOG}' '${CMPLOG}'
-	$C ${MAKE} '${OBSLOG}'
-	$C ${MAKE} '${CMPLOG}'
+	${RF} '${TEST_OBS}' '${TEST_CMP}'
+	$C ${MAKE} '${TEST_OBS}'
+	$C ${MAKE} '${TEST_CMP}'
 
 # Add a "make cmp" to the bottom of the "make all" list.
 all::
@@ -44,9 +62,7 @@ all::
 
 # Add removal of the output compare logs to the "make clean" list.
 clean::
-	${RF} '${OBSLOG}' '${CMPLOG}'
-
-
+	${RF} '${TEST_OBS}' '${TEST_CMP}'
 
 # Set up a "make gdb" rule that makes sure
 # we are built, and starts GDB.
@@ -65,3 +81,25 @@ format::
 world::
 	$C $(MAKE) clean
 	$C $(MAKE) cmp
+
+logs:
+	$C find ${LOGD} -empty -o -iname cc-\*.log                      \
+		-exec printf '\n%s:\n\n' \{\} \;                        \
+		-exec cat \{\} \;
+	$C find ${LOGD} -empty -o -iname ld-\*.log                      \
+		-exec printf '\n%s:\n\n' \{\} \;                        \
+		-exec cat \{\} \;
+	$C find ${LOGD} -empty -o -iname \*.err                         \
+		-exec printf '\n%s:\n\n' \{\} \;                        \
+		-exec cat \{\} \;
+	$C find ${LOGD} -empty                                          \
+		-o -iname \*.log.difference                             \
+		-exec printf '\n%s:\n\n' \{\} \;                        \
+		-exec cat \{\} \;
+#	$E other log files:
+#	$C find ${LOGD} -empty                                          \
+#		-o -iname cc-\*.log                                     \
+#		-o -iname ld-\*.log                                     \
+#		-o -iname \*.log                                        \
+#		-exec printf '\n%s:\n\n' \{\} \;                        \
+#		-exec cat \{\} \;
