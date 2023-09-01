@@ -68,30 +68,24 @@ world::
 	$C $(MAKE) clean
 	$C $(MAKE) cmp
 
-showbuildlogs::
+logs:
 	$C find ${LOGD} -empty -o -iname cc-\*.log                      \
 		-exec printf '\n%s:\n\n' \{\} \;                        \
 		-exec cat \{\} \;
 	$C find ${LOGD} -empty -o -iname ld-\*.log                      \
 		-exec printf '\n%s:\n\n' \{\} \;                        \
 		-exec cat \{\} \;
-showdiffs:
+	$C find ${LOGD} -empty -o -iname \*.err                         \
+		-exec printf '\n%s:\n\n' \{\} \;                        \
+		-exec cat \{\} \;
 	$C find ${LOGD} -empty                                          \
 		-o -iname \*.log.difference                             \
 		-exec printf '\n%s:\n\n' \{\} \;                        \
 		-exec cat \{\} \;
-
-
-showstderr:
-	$C find ${LOGD} -empty -o -iname \*.err                         \
-		-exec printf '\n%s:\n\n' \{\} \;                        \
-		-exec cat \{\} \;
-
-showstdout:
-	$C find ${LOGD} -empty                                          \
-		-o -iname cc-\*.log                                     \
-		-o -iname ld-\*.log                                     \
-		-o -iname \*.log                                        \
-		-exec printf '\n%s:\n\n' \{\} \;                        \
-		-exec cat \{\} \;
-
+#	$E other log files:
+#	$C find ${LOGD} -empty                                          \
+#		-o -iname cc-\*.log                                     \
+#		-o -iname ld-\*.log                                     \
+#		-o -iname \*.log                                        \
+#		-exec printf '\n%s:\n\n' \{\} \;                        \
+#		-exec cat \{\} \;
