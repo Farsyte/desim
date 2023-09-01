@@ -25,7 +25,7 @@ static void Clock_bench()
 {
     Tau                 max_iter = 1000;
     double              t0, dt;
-    double              mint = 0.25;
+    double              mint = 0.025;
 
     while (1) {
         t0 = rtc();

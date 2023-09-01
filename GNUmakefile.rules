@@ -23,44 +23,48 @@ NOOP            = $C true
 E               = $C echo
 P		= $C printf
 
-DDIR            = dep/
-IDIR            = inc/
-SDIR            = src/
-ODIR            = obj/
-LDIR            = lib/
-BDIR            = bin/
-TDIR            = test/
-LOGD		= log/
+DEPDIR		:= dep/
+INCDIR		:= inc/
+SRCDIR		:= src/
+BISTDIR		:= bist/
+OBJDIR		:= obj/
+LIBDIR		:= lib/
+BINDIR		:= bin/
+LOGDIR		:= log/
 
 # LIBS            = util                        # add personal libraries
 # SYSLIBS         = pthread ncurses m           # add system libraries
 
 ALLLIBS         = $(LIBS) $(SYSLIBS)
 
-HSRC            := ${wildcard ${IDIR}*.h}
-CSRC            := ${wildcard ${SDIR}*.c}
+HSRC            := ${wildcard ${INCDIR}*.h}
+CSRC            := ${wildcard ${SRCDIR}*.c}
+BSRC            := ${wildcard ${BISTDIR}*.c}
 
-OBJS            = ${CSRC:${SDIR}%.c=${ODIR}%.o}
-DEPS            = ${CSRC:${SDIR}%.c=${DDIR}%.d}
-LOGS            = ${CSRC:${SDIR}%.c=${LOGD}cc-%.err} \
-		  ${PROG:%=${LOGD}ld-%.log} \
-		  ${PROG:%=${LOGD}ld-%.err}
+OBJS		:= ${CSRC:${SRCDIR}%.c=${OBJDIR}%.o} \
+		   ${BSRC:${BISTDIR}%.c=${OBJDIR}%.o}
+DEPS		:= ${CSRC:${SRCDIR}%.c=${DEPDIR}%.d} \
+		   ${BSRC:${BISTDIR}%.c=${DEPDIR}%.d}
+LOGS		:= ${CSRC:${SRCDIR}%.c=${LOGDIR}cc-%.err} \
+		   ${BSRC:${BISTDIR}%.c=${LOGDIR}cc-%.err} \
+		   ${PROG:%=${LOGDIR}ld-%.log} \
+		   ${PROG:%=${LOGDIR}ld-%.err}
 
-INST		= ${PROG:%=${BDIR}%}
+INST		:= ${PROG:%=${BINDIR}%}
 
-IDIRS           = ${IDIR}
-LDIRS           = ${LDIR}
+INCDIRS		:= ${INCDIR}
+LIBDIRS		:= ${LIBDIR}
 
-IFLAGS          = ${IDIRS:%=-I%}
+IFLAGS		:= ${INCDIRS:%=-I%}
 
-DBGOPT          = $(DBG) $(PRO) $(OPT) $(COV)
+DBGOPT		:= $(DBG) $(PRO) $(OPT) $(COV)
 
-CFLAGS          =  ${STD} ${IFLAGS}            ${DBGOPT}  ${WFLAGS}
+CFLAGS		:=  ${STD} ${IFLAGS}            ${DBGOPT}  ${WFLAGS}
 
-LDFLAGS         = ${PRO} $(COV) ${LDIRS:%=-L%}
-LDLIBS          = ${ALLLIBS:%=-l%}
+LDFLAGS		:= ${PRO} ${COV} ${LIBDIRS:%=-L%}
+LDLIBS		:= ${ALLLIBS:%=-l%}
 
-LINK.c		= $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(TARGET_ARCH)
+LINK.c		:= $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(TARGET_ARCH)
 
 # Start building up the "make" targets that I like to always have.
 
@@ -80,12 +84,12 @@ world::
 # a fresh (or cleaned) area, but adds dependencies so we can
 # recompile sources that depend on headers that changed.
 
-include ${wildcard ${DDIR}*.d} /dev/null
+include ${wildcard ${DEPDIR}*.d} /dev/null
 
 objs::		${OBJS}
 default::	objs
 clean::
-	${RF} ${OBJS} ${DEPS}
+	${RF} ${OBJDIR}/*.o ${DEPDIR}/*.d
 
 inst::		${INST}
 default::	inst
@@ -98,18 +102,24 @@ clean::
 # - by default, do not echo the command lines
 # - maintain a dependency file for each source file
 
-${ODIR}%.o:    ${SDIR}%.c
+${OBJDIR}%.o:    ${SRCDIR}%.c
 	$E 'cc $* ...'
 	$Q $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< -MM | \
-	   sed '1s|^$*\.o: |$@: |' > ${DDIR}$*.d
-	$Q $(COMPILE.c) $(OUTPUT_OPTION) $< 2> ${LOGD}cc-$*.err
+	   sed '1s|^$*\.o: |$@: |' > ${DEPDIR}$*.d
+	$Q $(COMPILE.c) $(OUTPUT_OPTION) $< 2> ${LOGDIR}cc-$*.err
+
+${OBJDIR}%.o:    ${BISTDIR}%.c
+	$E 'cc $* ...'
+	$Q $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< -MM | \
+	   sed '1s|^$*\.o: |$@: |' > ${DEPDIR}$*.d
+	$Q $(COMPILE.c) $(OUTPUT_OPTION) $< 2> ${LOGDIR}cc-$*.err
 
 ${INST}:	${OBJS}
 	$E 'link ${PROG} ...'
-	$Q ${LINK.c} ${OBJS} ${LOADLIBES} ${LDLIBS} -o '$@' 2> ${LOGD}ld-${PROG}.log
+	$Q ${LINK.c} ${OBJS} ${LOADLIBES} ${LDLIBS} -o '$@' 2> ${LOGDIR}ld-${PROG}.log
 
 clean::
-	${RF} ${LOGS}
+	${RF} ${LOGDIR}/*.err ${LOGDIR}/*.log
 	${RF} ${INST}
-	${RD} ${OBJS}
-	${RD} ${DEPS}
+	${RD} ${OBJDIR}/*.o
+	${RD} ${DEPDIR}/*.d

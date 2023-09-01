@@ -30,17 +30,17 @@ WAITF		:= ${CSRC} ${HSRC} ${INST}
 WAITE		:= modify delete
 
 run::		${INST}
-	$C ${INST} > ${LOGD}run-${PROG}.log 2> ${LOGD}run-${PROG}.err
+	$C ${INST} > ${LOGDIR}run-${PROG}.log 2> ${LOGDIR}run-${PROG}.err
 
-TEST_OBS	:= ${PROG:%=${LOGD}run-%.log}
-TEST_EXP	:= ${PROG:%=${LOGD}run-%.log.expected}
-TEST_CMP	:= ${PROG:%=${LOGD}run-%.log.difference}
+TEST_OBS	:= ${PROG:%=${LOGDIR}run-%.log}
+TEST_EXP	:= ${PROG:%=${LOGDIR}run-%.log.expected}
+TEST_CMP	:= ${PROG:%=${LOGDIR}run-%.log.difference}
 
-${LOGD}run-%.log:	${BDIR}%
-	$< > $@ 2>${LOGD}run-$*.err
+${LOGDIR}run-%.log:	${BINDIR}%
+	$< > $@ 2>${LOGDIR}run-$*.err
 
-${LOGD}run-%.log.difference:	${LOGD}run-%.log
-	$Q bin/check.sh '${LOGD}run-$*.log.expected' $< $@
+${LOGDIR}run-%.log.difference:	${LOGDIR}run-%.log
+	$Q bin/check.sh '${LOGDIR}run-$*.log.expected' $< $@
 
 # Set up a build rule that I can run in a loop,
 # usually with a "make await" between iteraions.
@@ -83,21 +83,21 @@ world::
 	$C $(MAKE) cmp
 
 logs:
-	$C find ${LOGD} -empty -o -iname cc-\*.log                      \
+	$C find ${LOGDIR} -empty -o -iname cc-\*.log                      \
 		-exec printf '\n%s:\n\n' \{\} \;                        \
 		-exec cat \{\} \;
-	$C find ${LOGD} -empty -o -iname ld-\*.log                      \
+	$C find ${LOGDIR} -empty -o -iname ld-\*.log                      \
 		-exec printf '\n%s:\n\n' \{\} \;                        \
 		-exec cat \{\} \;
-	$C find ${LOGD} -empty -o -iname \*.err                         \
+	$C find ${LOGDIR} -empty -o -iname \*.err                         \
 		-exec printf '\n%s:\n\n' \{\} \;                        \
 		-exec cat \{\} \;
-	$C find ${LOGD} -empty                                          \
+	$C find ${LOGDIR} -empty                                          \
 		-o -iname \*.log.difference                             \
 		-exec printf '\n%s:\n\n' \{\} \;                        \
 		-exec cat \{\} \;
 #	$E other log files:
-#	$C find ${LOGD} -empty                                          \
+#	$C find ${LOGDIR} -empty                                          \
 #		-o -iname cc-\*.log                                     \
 #		-o -iname ld-\*.log                                     \
 #		-o -iname \*.log                                        \
