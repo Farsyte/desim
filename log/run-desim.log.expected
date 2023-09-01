@@ -22,5 +22,10 @@ s3: b↓
 s3: c↓
 Edge_bist complete
 Clock_bist complete
+TimingCheck: τ allowed 0.060 to 0.090 μs saw 0.090 to 0.060 μs NO
+TimingCheck: τ allowed 0.060 to 0.090 μs saw 0.070 to 0.080 μs
+TimingCheck: τ allowed 0.060 to 0.090 μs saw 0.050 to 0.080 μs LB
+TimingCheck: τ allowed 0.060 to 0.090 μs saw 0.050 to 0.099 μs LB UB
+timing_check_bist complete
 Gen8224_bist complete
 bin/desim complete
