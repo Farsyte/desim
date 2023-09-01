@@ -4,6 +4,7 @@
 #include "tau.h"
 #include "edge.h"
 #include "clock.h"
+#include "rtc.h"
 
 #include "timing_check.h"
 
@@ -19,6 +20,8 @@ int main(int argc, char **argv)
     Clock_bist();
     timing_check_bist();
     Gen8224_bist();
+
+    rtc_bist();
 
     printf("%s complete\n", argv[0]);
 }

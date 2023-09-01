@@ -170,23 +170,23 @@ static void Gen8224_bench()
     Gen8224_linked(gen);
 
     Tau                 delta_tau = 1000;
-    double              t0, dt;
-    double              mint = 0.025;
+    Tau                 t0, dt;
+    Tau                 mint = 25000000;
 
     while (1) {
-        t0 = rtc();
+        t0 = rtc_ns();
         Clock_cycle_by(delta_tau);
-        dt = rtc() - t0;
+        dt = rtc_ns() - t0;
         if (dt >= mint)
             break;
-        if (dt < 0.01) {
+        if (dt <= mint / 10) {
             delta_tau *= 10;
         } else {
             delta_tau = (delta_tau * mint * 2.0) / dt;
         }
     }
 
-    double              w_ms = dt * 1000.0;
+    double              w_ms = dt / 1000000.0;
     double              s_ms = delta_tau / 1000000.0;
 
     fprintf(stderr, "\n");
@@ -194,11 +194,10 @@ static void Gen8224_bench()
     fprintf(stderr, "  wall time elapsed: %.3f ms\n", w_ms);
     fprintf(stderr, "   sim time elapsed: %.3f ms\n", s_ms);
 
-    double time_ratio = s_ms / w_ms;
+    double              time_ratio = s_ms / w_ms;
     fprintf(stderr,
             "  sim running at %.2fx real time"
-            " (higher is better)\n",
-            time_ratio);
+            " (higher is better)\n", time_ratio);
     fprintf(stderr, "\n");
 
     // I am simulating the 8224 at several times its original

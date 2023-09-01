@@ -75,7 +75,7 @@ gdb::		${INST}
 
 format::
 	$E 'indent ...'
-	$C bin/indent.sh ${HSRC} ${CSRC}
+	$C bin/indent.sh ${HSRC} ${CSRC} ${BSRC}
 
 
 world::

@@ -42,22 +42,22 @@ void Edge_bench()
     }
 
     unsigned long       max_iter = 1000;
-    double              t0, dt;
-    double              mint = 0.025;
+    Tau                 t0, dt;
+    Tau                 mint = 25000000;
 
     while (1) {
         s->ticks = 0;
         s->tocks = 0;
 
-        t0 = rtc();
+        t0 = rtc_ns();
         for (unsigned long i = 0; i < max_iter; ++i) {
             Edge_set(e, 1);
             Edge_set(e, 0);
         }
-        dt = rtc() - t0;
+        dt = rtc_ns() - t0;
         if (dt >= mint)
             break;
-        if (dt < 0.01) {
+        if (dt < mint / 10) {
             max_iter *= 10;
         } else {
             max_iter = (max_iter * mint * 2.0) / dt;
@@ -69,10 +69,9 @@ void Edge_bench()
     fprintf(stderr, "Edge benchmark:\n");
     fprintf(stderr, "  count is %lu ticks, %lu tocks\n",
             s->ticks, s->tocks);
-    fprintf(stderr, "  elapsed time is %.3f ms\n", dt * 1000.0);
+    fprintf(stderr, "  elapsed time is %.3f ms\n", dt / 1000000.0);
 
-    double              ns_per_call =
-      dt * 1000000000.0 / (s->ticks + s->tocks);
+    double              ns_per_call = dt * 1.0 / (s->ticks + s->tocks);
 
     fprintf(stderr, "  time per count is %.3f ns\n", ns_per_call);
     fprintf(stderr, "\n");

@@ -18,7 +18,7 @@ cat <<EOF
 EOF
 
 
-make loop
+make -kj loop
 make logs
 
 cat <<EOF
