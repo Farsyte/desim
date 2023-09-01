@@ -16,6 +16,9 @@ static Tau          excess = 0;
 // Or think of this as (den*1000/num) MHz.
 void Clock_init(Tau period_num, Tau period_den)
 {
+    TAU = 0;
+    UNIT = 0;
+
     CLOCK->name = format("CLOCK_%.0fMHz_%.0fNS",
                          p_den * 1000.0 / p_num, p_num * 1.0 / p_den);
 
