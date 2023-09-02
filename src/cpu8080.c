@@ -11,8 +11,10 @@
 
 unsigned            Cpu8080_debug = 2;
 
-Cpu8080_state      *m1t4[0400];
-Cpu8080_state      *m2t1[0400];
+
+static int          state_tables_init_done = 0;
+static Cpu8080_state *m1t4[0400];
+static Cpu8080_state *m2t1[0400];
 
 static void s_invalid_reported(Cpu8080 cpu, Cpu8080_phase ph)
 {
@@ -233,6 +235,9 @@ void Cpu8080_linked(Cpu8080 cpu)
 
 static void init_decode()
 {
+    if (state_tables_init_done)
+        return;
+
     for (unsigned b = 0; b <= 0377; ++b) {
         m1t4[b] = s_invalid;
         m2t1[b] = s_fetch;
@@ -242,6 +247,8 @@ static void init_decode()
     m1t4[0000] = s_noop;
 
     printf("TODO: set up more entries in m1t4\n");
+
+    state_tables_init_done = 1;
 }
 
 void Cpu8080_init(Cpu8080 cpu)

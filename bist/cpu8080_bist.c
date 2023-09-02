@@ -1,6 +1,7 @@
 #include "cpu8080.h"
 
 #include <stdio.h>
+#include <assert.h>
 
 #include "clock.h"
 #include "gen8224.h"
@@ -9,6 +10,7 @@
 #include "8080_status.h"
 
 #include "traced.h"
+#include "rtc.h"
 
 extern Gen8224      gen;
 extern Ctl8228      ctl;
@@ -157,8 +159,13 @@ static void fp_print()
     EDGE_FALL(DBIN, fp_dbin_fall, 0);
 }
 
-void Cpu8080_bist()
+static void Cpu8080_bist_init()
 {
+    Edge_lo(RESIN_);
+    Edge_lo(RDYIN);
+    Edge_lo(HOLD);
+    Edge_lo(INT);
+
     Clock_init(1000, 18);
 
     Gen8224_init(gen);
@@ -168,6 +175,87 @@ void Cpu8080_bist()
     Gen8224_linked(gen);
     Ctl8228_linked(ctl);
     Cpu8080_linked(cpu);
+}
+
+static void sync_counter(Tau *ctr)
+{
+    ++*ctr;
+}
+
+static void Cpu8080_bench()
+{
+    Cpu8080_bist_init();
+
+    // Initial state: RESET is asserted, READY is not.
+
+    Clock_cycle_to(TAU + 3000);
+
+    // Release RESET.
+    Edge_hi(RESIN_);
+    Clock_cycle_to(TAU + 3500);
+
+    // Assert READY
+    Edge_hi(RDYIN);
+    Clock_cycle_to(TAU + 5500);
+
+    Tau                 delta_tau = 1000;
+    Tau                 t0, dt;
+    Tau                 mint = 25000000;
+
+    Tau                 sync_count = 0;
+    EDGE_RISE(cpu->SYNC, sync_counter, &sync_count);
+
+    while (1) {
+        sync_count = 0;
+        t0 = rtc_ns();
+        Clock_cycle_by(delta_tau);
+        dt = rtc_ns() - t0;
+        if (dt >= mint)
+            break;
+        if (dt <= mint / 10) {
+            delta_tau *= 10;
+        } else {
+            delta_tau = (delta_tau * mint * 2.0) / dt;
+        }
+    }
+
+    double              w_ms = dt / 1000000.0;
+    double              s_ms = delta_tau / 1000000.0;
+
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Cpu8080 benchmark:\n");
+    fprintf(stderr, " wall time per SYNC: %.3f μs\n",
+            w_ms * 1000.0 / sync_count);
+    fprintf(stderr, "  sim time per SYNC: %.3f μs\n",
+            s_ms * 1000.0 / sync_count);
+    fprintf(stderr, "  wall time elapsed: %.3f ms\n", w_ms);
+    fprintf(stderr, "   sim time elapsed: %.3f ms\n", s_ms);
+
+    double              time_ratio = s_ms / w_ms;
+    fprintf(stderr,
+            "  sim running at %.2fx real time"
+            " (higher is better)\n", time_ratio);
+    fprintf(stderr, "\n");
+
+    // I am simulating the 8080 at several times its original
+    // speed, configured to use a 18.00 MHz clock.
+    //
+    // Compiled with -g -O0, sim runs at about 4x real time.
+    // Compiled with -g -O2, sim runs at about 7x real time.
+    // Compiled with -g -O3, sim runs at about 9x real time.
+    //
+    // Compiled with -g -pg -O0, sim runs at about 1x real time.
+    //
+    // Fail this test if the ratio falls under 0.5
+    //
+    assert(time_ratio > 0.5);
+}
+
+void Cpu8080_bist()
+{
+    Cpu8080_bench();
+
+    Cpu8080_bist_init();
 
     fp_print();
 
