@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include "cpu8080_reset.h"
+
 #include "edge.h"
 
 #include "8080_status.h"
@@ -140,6 +142,8 @@ static void s_incpc(Cpu8080 cpu, Cpu8080_phase ph)
     }
 }
 
+/** s_fetch(cpu, ph):
+ */
 static void s_fetch(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
@@ -154,25 +158,6 @@ static void s_fetch(Cpu8080 cpu, Cpu8080_phase ph)
           break;
       case PHI2_FALL:
           cpu->state_next = s_incpc;
-          break;
-    }
-}
-
-static void s_reset(Cpu8080 cpu, Cpu8080_phase ph)
-{
-    Edge_lo(cpu->SYNC);
-    Edge_lo(cpu->DBIN);
-    Edge_hi(cpu->WR_);
-
-    switch (ph) {
-      default:
-          break;
-      case PHI1_RISE:
-          if (!Edge_get(cpu->RESET))
-              cpu->state_next = s_fetch;
-      case PHI2_RISE:
-          break;
-      case PHI2_FALL:
           break;
     }
 }
@@ -225,9 +210,6 @@ void Cpu8080_linked(Cpu8080 cpu)
     assert(cpu->INT->name[0]);
     assert(Edge_get(cpu->INT) == 0);
 
-    cpu->state = (Cpu8080_state *) s_reset;
-    cpu->state_next = (Cpu8080_state *) s_reset;
-
     EDGE_RISE(cpu->PHI1, phi1_rise, cpu);
     EDGE_RISE(cpu->PHI2, phi2_rise, cpu);
     EDGE_FALL(cpu->PHI2, phi2_fall, cpu);
@@ -238,15 +220,15 @@ static void init_decode()
     if (state_tables_init_done)
         return;
 
+    m1t4[0000] = s_template;
+    m2t1[0000] = s_template;
+
     for (unsigned b = 0; b <= 0377; ++b) {
         m1t4[b] = s_invalid;
         m2t1[b] = s_fetch;
     }
 
-    m1t4[0000] = s_template;
     m1t4[0000] = s_noop;
-
-    printf("TODO: set up more entries in m1t4\n");
 
     state_tables_init_done = 1;
 }
@@ -277,4 +259,6 @@ void Cpu8080_init(Cpu8080 cpu)
 
     cpu->HLDA->name = format("%s.HLDA", cpu->name);
     Edge_init(cpu->HLDA);
+
+    Cpu8080_init_reset(cpu, s_fetch);
 }

@@ -12,6 +12,8 @@
 #include "traced.h"
 #include "rtc.h"
 
+#include "bist_macros.h"
+
 extern Gen8224      gen;
 extern Ctl8228      ctl;
 extern Cpu8080      cpu;
@@ -184,6 +186,8 @@ static void sync_counter(Tau *ctr)
 
 static void Cpu8080_bench()
 {
+    PRINT_TOP();
+
     Cpu8080_bist_init();
 
     // Initial state: RESET is asserted, READY is not.
@@ -249,11 +253,15 @@ static void Cpu8080_bench()
     // Fail this test if the ratio falls under 0.5
     //
     assert(time_ratio > 0.5);
+
+    PRINT_END();
 }
 
 void Cpu8080_bist()
 {
     Cpu8080_bench();
+
+    PRINT_TOP();
 
     Cpu8080_bist_init();
 
@@ -325,6 +333,6 @@ void Cpu8080_bist()
             Traced_print(trace_list[i], u, hi - u);
         u = hi;
     }
-    printf("\n");
-    printf("Cpu8080_bist complete\n");
+
+    PRINT_END();
 }

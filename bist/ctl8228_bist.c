@@ -13,6 +13,8 @@
 
 #include "8080_status.h"
 
+#include "bist_macros.h"
+
 static Byte         Data;
 
 static Edge         STSTB_ = { {"STSTB_"} };
@@ -54,10 +56,6 @@ static pTraced      trace_list[] = {
 
 static size_t       trace_count =
   sizeof trace_list / sizeof trace_list[0];
-
-static void Ctl8228_bench()
-{
-}
 
 static void dostatus(Byte status)
 {
@@ -147,8 +145,7 @@ static void dostatus(Byte status)
 
 void Ctl8228_bist()
 {
-    // bench will advance the clock quite a lot.
-    Ctl8228_bench();
+    PRINT_TOP();
 
     Edge_hi(STSTB_);
     Edge_lo(DBIN);
@@ -211,7 +208,5 @@ void Ctl8228_bist()
             Traced_print(trace_list[i], u, hi - u);
         u = hi;
     }
-    printf("\n");
-
-    printf("Ctl8228_bist complete\n");
+    PRINT_END();
 }

@@ -3,8 +3,11 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "bist_macros.h"
+
 void timing_check_bist()
 {
+    PRINT_TOP();
 
     TimingCheck         e = { {"τ", 60, 90} };
 
@@ -36,5 +39,5 @@ void timing_check_bist()
     timing_check_print(e);      // indicate failure codes LB UB
     assert(TIMING_CHECK_UBLB == timing_check_fails(e));
 
-    printf("timing_check_bist complete\n");
+    PRINT_END();
 }

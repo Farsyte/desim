@@ -11,6 +11,7 @@
 
 #include "timing_check.h"
 #include "traced.h"
+#include "bist_macros.h"
 
 static Edge         RESIN_ = { {"RESIN_"} };
 static Edge         RDYIN = { {"RDYIN"} };
@@ -159,6 +160,8 @@ static void ststb_rise(void *arg)
 
 static void Gen8224_bench()
 {
+    PRINT_TOP();
+
     Edge_hi(SYNC);      /* no cpu, mostly test with SYNC always asserted */
     Edge_lo(RESIN_);    /* start with RESIN asserted */
     Edge_lo(RDYIN);     /* start with RDYIN not asserted */
@@ -212,12 +215,15 @@ static void Gen8224_bench()
     // Fail this test if the ratio falls under 0.5
     //
     assert(time_ratio > 0.5);
+
+    PRINT_END();
 }
 
 void Gen8224_bist()
 {
-    // bench will advance the clock quite a lot.
     Gen8224_bench();
+
+    PRINT_TOP();
 
     // complete reset.
     // Note that the init routines blow away
@@ -327,7 +333,5 @@ void Gen8224_bist()
             Traced_print(trace_list[i], u, hi - u);
         u = hi;
     }
-    printf("\n");
-
-    printf("Gen8224_bist complete\n");
+    PRINT_END();
 }

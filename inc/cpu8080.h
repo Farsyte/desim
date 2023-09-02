@@ -1,9 +1,9 @@
 #pragma once
 
-#include "edge.h"
 #include "clock.h"
-#include "gen8224.h"
 #include "ctl8228.h"
+#include "edge.h"
+#include "gen8224.h"
 
 typedef enum {
     UNPHASED, PHI1_RISE, PHI2_RISE, PHI2_FALL

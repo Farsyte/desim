@@ -3,8 +3,12 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "bist_macros.h"
+
 void rtc_bist()
 {
+    PRINT_TOP();
+
     Tau                 t0 = rtc_ns();
     Tau                 t1 = rtc_ns();
     Tau                 dt = t1 - t0;
@@ -23,5 +27,5 @@ void rtc_bist()
     // do two rtc_ns calls within a time period that
     // the host system thinks is zero elapsed time.
 
-    printf("rtc_bist complete\n");
+    PRINT_END();
 }

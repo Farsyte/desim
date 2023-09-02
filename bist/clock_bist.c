@@ -6,6 +6,8 @@
 
 #include "rtc.h"
 
+#include "bist_macros.h"
+
 static void clock_hi(Tau *rises)
 {
     (*rises)++;
@@ -18,6 +20,8 @@ static void clock_lo(Tau *falls)
 
 static void Clock_bench()
 {
+    PRINT_TOP();
+
     Tau                 max_iter = 1000;
     Tau                 t0, dt;
     Tau                 mint = 25000000;
@@ -52,10 +56,14 @@ static void Clock_bench()
     // even at -g -O0, we should be around 12 ns,
     // fail this test if we hit 50 ns.
     assert(ns_per_call < 50.0);
+
+    PRINT_END();
 }
 
 void Clock_bist()
 {
+    PRINT_TOP();
+
     Clock_init(1000, 18);
 
     TAU = 0;
@@ -80,5 +88,5 @@ void Clock_bist()
 
     Clock_bench();
 
-    printf("Clock_bist complete\n");
+    PRINT_END();
 }
