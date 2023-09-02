@@ -50,24 +50,46 @@
 
 -TFILE
 
--TEdgeArg
--TEdgeFn
--TEdgeFp
--TsEdgeFA
--TpEdgeFA
--TEdgeSL
--TsEdge
--TEdge
--TpEdge
+-TTau
 
 -Tuint8_t
 -Tuint16_t
 
 -TBit
--TByte
--TWord
-
 -TCstr
 -TName
+-TByte
+-TpByte
+-TWord
+-TpWord
 
--TTau
+-TpReg1
+-TReg1
+-TpReg8
+-TReg8
+-TpReg16
+-TReg16
+
+-TEdgeFn
+-TpEdgeFA
+-TEdgeFA
+-TpEdgeSL
+-TEdgeSL
+-TpEdge
+-TEdge
+
+-TpTimingCheck
+-TTimingCheck
+
+-TpTraced
+-TTraced
+
+-TpGen8224
+-TGen8224
+
+-TpCtl8228
+-TCtl8228
+
+-TpCpu8080
+-TCpu8080
+

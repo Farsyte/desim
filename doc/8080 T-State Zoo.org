@@ -1,0 +1,60 @@
+* M1
+** T1
+*** FETCH [PC OUT; STATUS]
+** T2
+*** INCPC [PC = PC + 1]
+** T3
+*** DECODE [INST→TMP/IR]
+** T4
+*** NOOP [THE "X" STATES]
+*** sss→TMP
+*** sss→TMP;A→ACT
+*** HL→
+*** HL←→DE
+*** rp+1→
+*** rp-1→
+*** SP-1→
+*** A→ACT
+*** 1→CY
+*** A,CY→ALU;ROTATE
+*** A→ALU;ROTATE
+*** A→INVERT→A
+*** CY→INVERT→CY
+*** JUDGE CONDITION (1ST OF 2)
+*** JUDGE CONDITION, IF TRUE, SP=SP-1 (1ST OF 2)
+*** RESET INTE F/F
+*** SET INTE F/F
+*** ddd->TMP;TMP+1→ALU
+** T5
+*** TMP→ddd
+*** →SP
+*** ALU→ddd
+*** →rp
+*** JUDGE CONDITION (2ND OF 2)
+*** JUDGE CONDITION, IF TRUE, SP=SP-1 (2ND OF 2)
+*** →PC
+* M2
+** T1
+** T2
+** T3
+** T4
+** T5
+* M3
+** T1
+** T2
+** T3
+** T4
+** T5
+* M4
+** T1
+** T2
+** T3
+** T4
+** T5
+* M5
+** T1
+** T2
+** T3
+** T4
+** T5
+

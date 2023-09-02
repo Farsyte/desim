@@ -1,3 +1,9 @@
+rtc_bist complete
+TimingCheck: τ allowed 60 to 90 ns -- FAIL, NO samples observed
+TimingCheck: τ allowed 60 to 90 ns, saw 70 to 80 ns
+TimingCheck: τ allowed 60 to 90 ns, saw 50 to 80 ns -- FAIL, LB timing violation(s).
+TimingCheck: τ allowed 60 to 90 ns, saw 50 to 99 ns -- FAIL, LB UB timing violation(s).
+timing_check_bist complete
 Tau_bist complete
 s1: a↑
 s2: a↑
@@ -22,11 +28,6 @@ s3: b↓
 s3: c↓
 Edge_bist complete
 Clock_bist complete
-TimingCheck: τ allowed 60 to 90 ns -- FAIL, NO samples observed
-TimingCheck: τ allowed 60 to 90 ns, saw 70 to 80 ns
-TimingCheck: τ allowed 60 to 90 ns, saw 50 to 80 ns -- FAIL, LB timing violation(s).
-TimingCheck: τ allowed 60 to 90 ns, saw 50 to 99 ns -- FAIL, LB UB timing violation(s).
-timing_check_bist complete
 
 Timing Checks:
 TimingCheck: CY allowed 480 to 2000 ns, saw 500 to 500 ns
@@ -293,5 +294,5 @@ From 36.000 to 40.000 μs:
     HLDA:	,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#########,,,,,,,,,,,
 
 Ctl8228_bist complete
-rtc_bist complete
+Cpu8080_bist complete
 bin/desim complete
