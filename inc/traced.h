@@ -12,12 +12,14 @@ typedef struct {
     size_t              trace_len;
     char                valc;
     char               *vals;
+    char                boring_char;
 
     Tau                 u0;
     Tau                 u;
 }                  *pTraced, Traced[1];
 
 extern void         Traced_init(Traced t, Edge e, int active_low);
+extern void         Traced_active_boring(Traced t);
 extern void         Traced_update(Traced t);
 extern void         Traced_rise(Traced t);
 extern void         Traced_fall(Traced t);

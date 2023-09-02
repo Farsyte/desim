@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "8080_instructions.h"
 #include "8080_status.h"
 #include "bist_macros.h"
 #include "clock.h"
@@ -105,14 +106,39 @@ Cpu8080             cpu = {
      }
 };
 
+unsigned fp_verbose = 5;
+unsigned fp_output = 0;
+
+static void fp_verbose_adj() {
+    if (fp_verbose < 1)
+        return;
+    fp_output ++;
+    if (fp_output < 1000)
+        return;
+    fp_output = 0;
+    fp_verbose --;
+}
+
 static void fp_memr_fall(void *arg)
 {
+    if (fp_verbose < 9) return;
     (void)arg;
     printf("%8.3f: /MEMR↓ 0%06o\n", TAU / 1000.0, *Addr);
+    fp_verbose_adj();
+}
+static void fp_memr_rise(void *arg)
+{
+    if (fp_verbose < 9) return;
+    (void)arg;
+    printf("%8.3f: /MEMR↑ 0%06o 0%03o\n", TAU / 1000.0, *Addr, *Data);
+    fp_verbose_adj();
 }
 static void fp_ststb_fall(void *arg)
 {
+    if (fp_verbose < 2) return;
+
     (void)arg;
+
     Byte                status = *Data;
     printf("%8.3f: /STSTB↓ 0%03o", TAU / 1000.0, status);
     printf("%s%s%s%s%s%s%s%s",
@@ -136,21 +162,33 @@ static void fp_ststb_fall(void *arg)
            (status == STATUS_HALTACK) ? " == STATUS_HALTACK" : "",
            (status == STATUS_INTACKW) ? " == STATUS_INTACKW" : "");
     printf("\n");
+    fp_verbose_adj();
 }
 static void fp_dbin_rise(void *arg)
 {
+    if (fp_verbose < 3) return;
     (void)arg;
-    printf("%8.3f: DBIN↑ 0%06o\n", TAU / 1000.0, *Addr);
+    printf("%8.3f: DBIN↑%s%s 0%06o\n", TAU / 1000.0,
+           Edge_get(MEMR_) ? "" : " /MEMR",
+           Edge_get(IOR_) ? "" : " /IOR",
+           *Addr);
+    fp_verbose_adj();
 }
 static void fp_dbin_fall(void *arg)
 {
+    if (fp_verbose < 1) return;
     (void)arg;
-    printf("%8.3f: DBIN↓ 0%06o 0%03o\n", TAU / 1000.0, *Addr, *Data);
+    // MEMR_ and IOR_ are released on DBIN falling edge,
+    // service happening before we get to this service.
+    printf("%8.3f: DBIN↓ 0%06o 0%03o\n", TAU / 1000.0,
+           *Addr, *Data);
+    fp_verbose_adj();
 }
 
 static void fp_print_setup()
 {
     EDGE_FALL(MEMR_, fp_memr_fall, 0);
+    EDGE_RISE(MEMR_, fp_memr_rise, 0);
     EDGE_FALL(STSTB_, fp_ststb_fall, 0);
     EDGE_RISE(DBIN, fp_dbin_rise, 0);
     EDGE_FALL(DBIN, fp_dbin_fall, 0);
@@ -289,6 +327,9 @@ void Cpu8080_bist()
     Traced_init(tHLDA, HLDA, 0);
     Traced_init(tWAIT, WAIT, 0);
 
+    Traced_active_boring(tRDYIN);
+    Traced_active_boring(tREADY);
+
     Tau                 umin = TAU;
 
     fprintf(stderr, "\nStarting cycles in Cpu8080_bist\n");
@@ -305,6 +346,33 @@ void Cpu8080_bist()
     Edge_hi(RDYIN);
     Clock_cycle_to(TAU + 5500);
 
+    // Execute a HLT instruction
+    {
+        Tau end_hlt = TAU + 8000;
+        while (!Edge_get(cpu->DBIN))
+            Clock_cycle();
+        while (Edge_get(ctl->MEMR_))
+            Clock_cycle();
+        *cpu->Data = I8080_HLT;
+        Clock_cycle_to(end_hlt);
+    }
+
+    // Exercise RESET from HALT state
+    {
+        Tau release_reset = TAU + 3000;
+        Tau assert_ready = release_reset + 3500;
+        Tau end_reset = assert_ready + 5500;
+
+        Edge_lo(RESIN_);
+        Edge_lo(RDYIN);
+        Clock_cycle_to(release_reset);
+        Edge_hi(RESIN_);
+        Clock_cycle_to(assert_ready);
+        Edge_hi(RDYIN);
+        Clock_cycle_to(end_reset);
+    }
+
+
     printf("\n");
     printf("Signal Traces:\n");
     for (size_t i = 0; i < trace_count; ++i)
@@ -320,7 +388,6 @@ void Cpu8080_bist()
         if (hi > umax)
             hi = umax;
         printf("\n");
-        printf("From %lu to %lu u:\n", u, hi);
         printf("From %.3f to %.3f μs:\n",
                us_per_unit * u, us_per_unit * hi);
         for (size_t i = 0; i < trace_count; ++i)

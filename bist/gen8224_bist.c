@@ -244,6 +244,10 @@ void Gen8224_bist()
     Traced_init(tREADY, gen->READY, 0);
     Traced_init(tSTSTB_, gen->STSTB_, 1);
 
+    Traced_active_boring(tSYNC);
+    Traced_active_boring(tRDYIN);
+    Traced_active_boring(tREADY);
+
     Tau                 umin = UNIT;
 
     // Run for a while with reset and ready both low
@@ -321,7 +325,6 @@ void Gen8224_bist()
         if (hi > umax)
             hi = umax;
         printf("\n");
-        printf("From %lu to %lu u:\n", u, hi);
         printf("From %.3f to %.3f μs:\n",
                us_per_unit * u, us_per_unit * hi);
         for (size_t i = 0; i < trace_count; ++i)

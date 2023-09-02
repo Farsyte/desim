@@ -7,8 +7,12 @@
 
 static void s_reset(Cpu8080 cpu, Cpu8080_phase ph)
 {
-    if ((ph == PHI1_RISE) && !Edge_get(cpu->RESET))
-        cpu->state_next = cpu->M1T1;
+    if (ph == PHI1_RISE) {
+        Edge_lo(cpu->WAIT);
+        if (!Edge_get(cpu->RESET)) {
+            cpu->state_next = cpu->M1T1;
+        }
+    }
 }
 
 static void reset_rise(Cpu8080 cpu)

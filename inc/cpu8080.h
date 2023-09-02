@@ -64,9 +64,9 @@ typedef struct sCpu8080 {
     //    pReg8               rph;
     //    pReg8               rpl;
 
-    // Publish the state function corresponding to
-    // entry into Machine Cycle 1, T State 1.
+    // Publish state handlers for specific shared states.
     Cpu8080_state       M1T1;
+    Cpu8080_state       M1T4_X;
 
     Cpu8080_state       state_next;
     Cpu8080_state       state;
