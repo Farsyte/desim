@@ -73,3 +73,4 @@ extern unsigned     Cpu8080_debug;
 extern void         Cpu8080_init(Cpu8080);
 extern void         Cpu8080_linked(Cpu8080);
 extern void         Cpu8080_bist();
+extern void         Cpu8080_bench();

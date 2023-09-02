@@ -9,6 +9,8 @@ void timing_check_bist()
 {
     PRINT_TOP();
 
+    printf("\n");
+
     TimingCheck         e = { {"τ", 60, 90} };
 
     timing_check_init(e);

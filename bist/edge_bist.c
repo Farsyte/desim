@@ -106,6 +106,8 @@ void Edge_bist()
 {
     PRINT_TOP();
 
+    printf("\n");
+
     Edge                a = { {"SIGA"} };
     Edge                b = { {"SIGB"} };
     Edge                c = { {"SIGC"} };
@@ -171,6 +173,5 @@ void Edge_bist()
 
     // PASS if output matches the reference output.
 
-    Edge_bench();
     PRINT_END();
 }

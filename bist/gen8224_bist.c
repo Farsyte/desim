@@ -158,7 +158,7 @@ static void ststb_rise(void *arg)
     timing_check_record(tPW, TAU);
 }
 
-static void Gen8224_bench()
+void Gen8224_bench()
 {
     PRINT_TOP();
 
@@ -221,8 +221,6 @@ static void Gen8224_bench()
 
 void Gen8224_bist()
 {
-    Gen8224_bench();
-
     PRINT_TOP();
 
     // complete reset.

@@ -18,9 +18,11 @@ static void clock_lo(Tau *falls)
     (*falls)++;
 }
 
-static void Clock_bench()
+void Clock_bench()
 {
     PRINT_TOP();
+
+    Clock_init(1000, 18);
 
     Tau                 max_iter = 1000;
     Tau                 t0, dt;
@@ -45,9 +47,9 @@ static void Clock_bench()
     fprintf(stderr, "\n");
     fprintf(stderr, "Clock benchmark:\n");
     fprintf(stderr, "  max_iter is %lu\n", max_iter);
-    fprintf(stderr, "  elapsed time is %.3f ms\n", dt / 1000.0);
+    fprintf(stderr, "  elapsed time is %.3f ms\n", dt / 1000000.0);
 
-    double              ns_per_call = dt * 1.0 / max_iter;
+    double              ns_per_call = dt * 0.001 / max_iter;
 
     fprintf(stderr, "  time per count is %.3f ns\n", ns_per_call);
     fprintf(stderr, "\n");
@@ -66,9 +68,6 @@ void Clock_bist()
 
     Clock_init(1000, 18);
 
-    TAU = 0;
-    UNIT = 0;
-
     Tau                 rises = 0;
     EDGE_RISE(CLOCK, clock_hi, &rises);
 
@@ -85,8 +84,6 @@ void Clock_bist()
     }
 
     assert(TAU == 1000);
-
-    Clock_bench();
 
     PRINT_END();
 }

@@ -47,3 +47,4 @@ extern void         Edge_hi(Edge e);
 extern void         Edge_lo(Edge e);
 
 extern void         Edge_bist();
+extern void         Edge_bench();

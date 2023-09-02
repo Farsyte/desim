@@ -153,7 +153,7 @@ static void fp_dbin_fall(void *arg)
     printf("%8.3f: DBIN↓ 0%06o 0%03o\n", TAU / 1000.0, *Addr, *Data);
 }
 
-static void fp_print()
+static void fp_print_setup()
 {
     EDGE_FALL(MEMR_, fp_memr_fall, 0);
     EDGE_FALL(STSTB_, fp_ststb_fall, 0);
@@ -184,7 +184,7 @@ static void sync_counter(Tau *ctr)
     ++*ctr;
 }
 
-static void Cpu8080_bench()
+void Cpu8080_bench()
 {
     PRINT_TOP();
 
@@ -259,13 +259,13 @@ static void Cpu8080_bench()
 
 void Cpu8080_bist()
 {
-    Cpu8080_bench();
-
     PRINT_TOP();
 
     Cpu8080_bist_init();
 
-    fp_print();
+    printf("\n");
+
+    fp_print_setup();
 
     // Signals not imported by any module:
     //   WAIT INTE Addr INTA_ IOW_ IOR_ MEMW_ MEMR_
