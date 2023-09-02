@@ -76,7 +76,6 @@ static void ststb_fall(Ctl8228 ctl)
 {
     Byte                STATUS = *ctl->Data;
     ctl->status = STATUS;
-
     if ((STATUS & STATUS_MEMR) && !(STATUS & STATUS_HLTA))
         Edge_lo(ctl->MEMR_);
     if (STATUS & STATUS_INP)

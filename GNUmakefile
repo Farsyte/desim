@@ -73,7 +73,7 @@ gdb::		${INST}
 # Set up a "make format" rule that fixes the
 # formatting in all source files.
 
-format::
+format::	${INST}
 	$E 'indent ...'
 	$C bin/indent.sh ${HSRC} ${CSRC} ${BSRC}
 

@@ -39,7 +39,7 @@ typedef struct {
 
     Byte                status;
 
-} Ctl8228[1];
+}                  *pCtl8228, Ctl8228[1];
 
 extern unsigned     Ctl8228_debug;
 

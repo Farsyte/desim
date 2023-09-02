@@ -23,7 +23,7 @@ typedef struct {
     // internal state
     unsigned            _phase;
 
-} Gen8224[1];
+}                  *pGen8224, Gen8224[1];
 
 extern unsigned     Gen8224_debug;
 

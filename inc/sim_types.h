@@ -19,5 +19,11 @@ typedef Cstr Name;
 
 // Definitions of Byte and Word may vary depending
 // on what is being simulated.
-typedef uint8_t Byte;
-typedef uint16_t Word;
+typedef uint8_t    *pByte, Byte;
+typedef uint16_t   *pWord, Word;
+
+// Byte-sized and Word-sized registers
+// are arrays of one thing. This allows
+typedef Bit        *pReg1, Reg1[1];
+typedef Byte       *pReg8, Reg8[1];
+typedef Word       *pReg16, Reg16[1];

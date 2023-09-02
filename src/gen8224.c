@@ -32,7 +32,7 @@ void Gen8224_init(Gen8224 gen)
 
     gen->STSTB_->name = format("%s.STSTB_", gen->name);
     Edge_init(gen->STSTB_);
-    Edge_lo(gen->STSTB_);
+    Edge_hi(gen->STSTB_);
 
     gen->_phase = 1;
 }
