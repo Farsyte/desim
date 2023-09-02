@@ -8,15 +8,31 @@ top=$(dirname "$here")
 
 cd "$top"
 
-clear
-date
-echo
+cat <<EOF
 
-make loop
+     === === === === === === === === === === === === === === ===
+                            STARTING BUILD
+                   $(date)
+     === === === === === === === === === === === === === === ===
+
+EOF
+
+
+make -kj loop
 make logs
 
-echo waiting for next update that needs a build.
+cat <<EOF
+
+     --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+                           BUILD COMPLETED
+                   $(date)
+     --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
+             waiting for next update that needs a build.
+
+EOF
+
 
 exec inotifywait -q -r \
     -e modify -e delete \
-    inc src bin log GNUmakefile*
+    inc src bist bin log GNUmakefile*

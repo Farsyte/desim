@@ -170,23 +170,23 @@ static void Gen8224_bench()
     Gen8224_linked(gen);
 
     Tau                 delta_tau = 1000;
-    double              t0, dt;
-    double              mint = 0.250;
+    Tau                 t0, dt;
+    Tau                 mint = 25000000;
 
     while (1) {
-        t0 = rtc();
+        t0 = rtc_ns();
         Clock_cycle_by(delta_tau);
-        dt = rtc() - t0;
+        dt = rtc_ns() - t0;
         if (dt >= mint)
             break;
-        if (dt < 0.01) {
+        if (dt <= mint / 10) {
             delta_tau *= 10;
         } else {
             delta_tau = (delta_tau * mint * 2.0) / dt;
         }
     }
 
-    double              w_ms = dt * 1000.0;
+    double              w_ms = dt / 1000000.0;
     double              s_ms = delta_tau / 1000000.0;
 
     fprintf(stderr, "\n");
@@ -194,25 +194,24 @@ static void Gen8224_bench()
     fprintf(stderr, "  wall time elapsed: %.3f ms\n", w_ms);
     fprintf(stderr, "   sim time elapsed: %.3f ms\n", s_ms);
 
-    double              time_ratio = w_ms / s_ms;
-
+    double              time_ratio = s_ms / w_ms;
     fprintf(stderr,
-            "  wall time per sim time is %.3f (lower is better)\n",
-            time_ratio);
+            "  sim running at %.2fx real time"
+            " (higher is better)\n", time_ratio);
     fprintf(stderr, "\n");
 
     // I am simulating the 8224 at several times its original
     // speed, configured to use a 18.00 MHz clock.
     //
-    // Compiled with -g -O0, I get 0.25 ms wall per sim ms.
-    // Compiled with -g -O2, I get 0.14 ms wall per sim ms.
-    // Compiled with -g -O3, I get 0.10 ms wall per sim ms.
+    // Compiled with -g -O0, sim runs at about 4x real time.
+    // Compiled with -g -O2, sim runs at about 7x real time.
+    // Compiled with -g -O3, sim runs at about 9x real time.
     //
-    // Compiled with -g -pg -O0, I get 1.01 ms wall per sim ms.
+    // Compiled with -g -pg -O0, sim runs at about 1x real time.
     //
-    // Fail this test if the ratio is over 2.0
+    // Fail this test if the ratio falls under 0.5
     //
-    assert(time_ratio < 2.0);
+    assert(time_ratio > 0.5);
 }
 
 void Gen8224_bist()

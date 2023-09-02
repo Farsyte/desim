@@ -1,3 +1,6 @@
 #pragma once
 
-extern double       rtc();
+#include "tau.h"
+
+extern Tau          rtc_ns();
+extern void         rtc_bist();

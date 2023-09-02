@@ -4,6 +4,8 @@
 #include <time.h>
 #include <stdio.h>
 
+#include "rtc.h"
+
 static void clock_hi(Tau *rises)
 {
     (*rises)++;
@@ -14,28 +16,21 @@ static void clock_lo(Tau *falls)
     (*falls)++;
 }
 
-static double rtc()
-{
-    struct timespec     tp[1];
-    clock_gettime(CLOCK_MONOTONIC_RAW, tp);
-    return tp->tv_sec + tp->tv_nsec / 1000000000.0;
-}
-
 static void Clock_bench()
 {
     Tau                 max_iter = 1000;
-    double              t0, dt;
-    double              mint = 0.25;
+    Tau                 t0, dt;
+    Tau                 mint = 25000000;
 
     while (1) {
-        t0 = rtc();
+        t0 = rtc_ns();
         for (Tau i = 0; i < max_iter; ++i) {
             Clock_cycle();
         }
-        dt = rtc() - t0;
+        dt = rtc_ns() - t0;
         if (dt >= mint)
             break;
-        if (dt < 0.01) {
+        if (dt <= mint / 10) {
             max_iter *= 10;
         } else {
             max_iter = (max_iter * mint * 2.0) / dt;
@@ -46,9 +41,9 @@ static void Clock_bench()
     fprintf(stderr, "\n");
     fprintf(stderr, "Clock benchmark:\n");
     fprintf(stderr, "  max_iter is %lu\n", max_iter);
-    fprintf(stderr, "  elapsed time is %.3f ms\n", dt * 1000.0);
+    fprintf(stderr, "  elapsed time is %.3f ms\n", dt / 1000.0);
 
-    double              ns_per_call = dt * 1000000000.0 / max_iter;
+    double              ns_per_call = dt * 1.0 / max_iter;
 
     fprintf(stderr, "  time per count is %.3f ns\n", ns_per_call);
     fprintf(stderr, "\n");

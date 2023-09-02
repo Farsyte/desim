@@ -8,14 +8,11 @@ computers from fifty years ago, but to avoid having anything in the
 framework that is inherently specific to any particular simulated
 system beyond the fundamental scope of the project
 
-** PROJECT DOWNCODE WORK IN PROGRESS
+** Committed to PROJECT DOWNCODE
 
-In this branch I once again wipe away the code and start from
-scratch, implementing what I have learned from experiments that
-depended on C++ classes and lambda expressions.
-
-I think I can do this in C99, and despite all the C++ talk about
-zero cost abstractions, I think I can make it faster.
+The simulation framework, and the 8224 simulation, have been
+successfully downcoded to C99 (with GNU extensions). I think that
+this project can be done without C++ facilities.
 
 ** Unconventional Naming Conventions
 
@@ -32,7 +29,7 @@ keeping the C convention of Keep It Short.
 Examples:
 - TAU is the time variable, of type Tau.
 - CLOCK is the clock signal, of type Edge.
-
+- RSTIN_ is the reset input signal, of type Edge, which is active-low.
 
 ** Digital, not Analog
 
@@ -52,11 +49,9 @@ between the ticks of the simulation.
 
 ** Edge
 
-Objects of type "edge" represent a special signal in the system that
-allows code to be notified on rising and falling edges. Each such
-object has a current value, a list of functions (each with an
-argument) to call after the value increases, and a list of functions
-(each with an argument) to call after the value decreases.
+Simulation execution is oriented toward the rising and falling edges
+of the signals within the simulated system, and triggering code that
+has asked to run on the appropriate edges.
 
 ** Functions
 
@@ -89,3 +84,104 @@ working with signal trace data for display.
 *** ---
 
 ** ---
+
+* Core Simulation Modules of Note
+
+** Edge: state, and things to do on rising and falling edges
+
+The module is a direct implementation of the abstraction above. A
+structure contains the value, and two expandable lists containing
+functions to call and the parameters to pass to them.
+
+Entry points are provided to observe and set the value; slightly
+faster methods are provided for "set value to 0" and "to 1".
+
+Callers are free to use (e->value) directly; using the "Edge_get(e)"
+method is entirely optional. Edge_get may be converted to a macro in
+the future, and using the named function is not substantially more
+clear than accessing the state directly.
+
+All operations above are considered Timing Critical and no changes
+will be contemplated that increase their runtime.
+
+Additionally, non-time-critical methods are provided for
+initialization and for adding subscribers to the callback lists.
+
+Edge objects and their friends presume that each Edge is effectively
+immortal. It is an error to construct an Edge on the stack, or to free
+a dynamically allocated Edge.
+
+** Clock: a freerunning system timebase
+
+This facility provides "Edge CLOCK;" and presents rising and falling
+edges on it at a rate determined by the Clock_init() call. As the
+initial collection of non-core simulation modules are centered around
+the Intel 8080, evaluations of this code use an 18.00 MHz clock rate,
+giving a period of 55 5/9 ns.
+
+The module generates a rising edge on CLOCK, then a falling edge. The
+global time values TAU and UNIT are advanced after the falling edge to
+the time of the next rising edge.
+
+Currently there is one and only one Clock, embodied in the CLOCK
+signal and in file-local scope data owned by the implementation.
+
+This SINGLETON decision will be revisited if and when desim is applied
+to the simulation of a system with multiple asynchronous clocks; this
+decision is not taken lightly, and it allows us to avoid placing a
+priority queue at the root of the most time critical part of the
+simulation engine.
+
+* Support Code of Note
+
+** RTC: real time clock
+
+Benchmarking, Testing, and Development support.
+
+The rtc_ns() function returns the elapsed time in Tau form (which is
+an integer number of nanoseconds) since an arbitray epoch. The
+intended use is to make two calls, and subtract the return value of
+the first from the return value of the second.
+
+** Timing: verify simulated timing of events
+
+This package provides for observing the change-in-TAU at a recording
+event since the last starting event, tracking the range of values
+observed, and comparing with the allowed range. Typically the start
+and record functions will be called from Edge-triggered code.
+
+This is intended to be used by simulation modules to verify that the
+timing of the simulated signals is within limits specified in the data
+sheet of the simulated item, or of another item intended to consume
+the signal.
+
+** Traced: collect and display behavior of signals
+
+Instances of this module attach themselves to a given Edge, watching
+as it rises and falls, and provide a textual representation of the
+behavior of the signal. If told that a signal is active-low, Traced
+can adjust the output appropriately to properly emphasize where the
+signal is active.
+
+** Format: arbitrary printf-like formatting
+
+This printf-like function uses =vsnprintf= to construct formatted
+output into a dynamically allocated string. The caller is responsible
+for freeing the string when it is no longer used.
+
+This is commonly used to format the names of signals that are owned by
+a module with a name.
+
+* Non-Core Simulation Modules of Note
+
+** Gen8224: Clock Generator
+
+This simulates the behavior of the Intel 8224 Clock Generator and
+Driver for 8080A CPU as described in section 5 of the 8080
+Microcomputer Systems Manual published in September 1975.
+
+Note that the behavior described in the 8224 data sheet differs from
+the behavior of the 8080 Clock Generator discrete logic provided in
+Figure 3-3 in a number of details. Side-by-side study of Fig 3-3 and
+the 8224 data sheet is enlightening.
+
