@@ -11,8 +11,9 @@
 unsigned            Cpu8080_debug = 2;
 
 static int          state_tables_init_done = 0;
-static Cpu8080_state *m1t4[0400];
-static Cpu8080_state *m2t1[0400];
+
+static Cpu8080_state m1t4[0400];
+static Cpu8080_state m2t1[0400];
 
 static void s_invalid_reported(Cpu8080 cpu, Cpu8080_phase ph)
 {
@@ -138,8 +139,6 @@ static void s_incpc(Cpu8080 cpu, Cpu8080_phase ph)
     }
 }
 
-/** s_fetch(cpu, ph):
- */
 static void s_fetch(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
@@ -256,5 +255,7 @@ void Cpu8080_init(Cpu8080 cpu)
     cpu->HLDA->name = format("%s.HLDA", cpu->name);
     Edge_init(cpu->HLDA);
 
-    Cpu8080_init_reset(cpu, s_fetch);
+    cpu->M1T1 = s_fetch;
+
+    Cpu8080_init_reset(cpu);
 }

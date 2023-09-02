@@ -11,7 +11,7 @@ typedef enum {
 
 struct sCpu8080;
 
-typedef void        Cpu8080_state(struct sCpu8080 *, Cpu8080_phase);
+typedef void        (*Cpu8080_state)(struct sCpu8080 *, Cpu8080_phase);
 
 typedef struct sCpu8080 {
     const char         *name;
@@ -64,8 +64,12 @@ typedef struct sCpu8080 {
     //    pReg8               rph;
     //    pReg8               rpl;
 
-    Cpu8080_state      *state_next;
-    Cpu8080_state      *state;
+    // Publish the state function corresponding to
+    // entry into Machine Cycle 1, T State 1.
+    Cpu8080_state       M1T1;
+
+    Cpu8080_state       state_next;
+    Cpu8080_state       state;
 }                  *pCpu8080, Cpu8080[1];
 
 extern unsigned     Cpu8080_debug;
