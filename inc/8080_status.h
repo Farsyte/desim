@@ -1,3 +1,4 @@
+#pragma once
 
 // Even with --std=gnu99, asking for -Wpedantic causes any use
 // of these macros to generate

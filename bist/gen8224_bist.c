@@ -1,17 +1,14 @@
-#include "gen8224.h"
-
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
+#include "bist_macros.h"
 #include "clock.h"
-#include "stub.h"
+#include "gen8224.h"
 #include "rtc.h"
-
+#include "stub.h"
 #include "timing_check.h"
 #include "traced.h"
-#include "bist_macros.h"
 
 static Edge         RESIN_ = { {"RESIN_"} };
 static Edge         RDYIN = { {"RDYIN"} };

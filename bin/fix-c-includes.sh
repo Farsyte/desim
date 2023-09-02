@@ -5,12 +5,12 @@
 for c in "$@"
 do
     d=$(dirname "$c")
-    b=$(basename "$c" ,c)
+    b=$(basename "$c" .c)
     o=$d/$b.c.fix-c-includes
 
     (
         (
-            printf '#include "%s.c"\n' "$b"
+            printf '#include "%s.h"\n' "$b"
             echo
             grep '#include <' < $c | sort
             echo
@@ -18,7 +18,7 @@ do
             ) | uniq.awk
         echo
         grep -v '#include' < $c
-    ) | cat -s >> $o
+    ) | cat -s > $o
 
     if cmp $c $o >/dev/null
     then

@@ -1,18 +1,14 @@
-#include "cpu8080.h"
-
-#include <stdio.h>
 #include <assert.h>
-
-#include "clock.h"
-#include "gen8224.h"
-#include "ctl8228.h"
+#include <stdio.h>
 
 #include "8080_status.h"
-
-#include "traced.h"
-#include "rtc.h"
-
 #include "bist_macros.h"
+#include "clock.h"
+#include "cpu8080.h"
+#include "ctl8228.h"
+#include "gen8224.h"
+#include "rtc.h"
+#include "traced.h"
 
 extern Gen8224      gen;
 extern Ctl8228      ctl;
@@ -92,7 +88,6 @@ static pTraced      trace_list[] = {
 };
 static size_t       trace_count =
   sizeof trace_list / sizeof trace_list[0];
-
 
 Gen8224             gen = {
     {"bist.gen1", CLOCK, RESIN_, RDYIN, SYNC
@@ -309,7 +304,6 @@ void Cpu8080_bist()
     // Assert READY
     Edge_hi(RDYIN);
     Clock_cycle_to(TAU + 5500);
-
 
     printf("\n");
     printf("Signal Traces:\n");

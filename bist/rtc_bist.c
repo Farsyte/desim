@@ -1,9 +1,8 @@
-#include "rtc.h"
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "bist_macros.h"
+#include "rtc.h"
 
 void rtc_bist()
 {

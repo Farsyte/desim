@@ -1,9 +1,8 @@
 #pragma once
 
-#include <stddef.h>
-
-#include "tau.h"
 #include "sim_types.h"
+#include "tau.h"
+#include <stddef.h>
 
 //typedef void       *EdgeArg;
 //typedef void EdgeFn (EdgeArg);

@@ -1,10 +1,9 @@
 #pragma once
 
-#include <stddef.h>
-
 #include "edge.h"
 #include "sim_types.h"
 #include "tau.h"
+#include <stddef.h>
 
 typedef struct {
     Name                name;

@@ -1,13 +1,12 @@
 #include "ctl8228.h"
+
 #include <assert.h>
 #include <stdlib.h>
 
+#include "8080_status.h"
 #include "edge.h"
-
 #include "stub.h"
 #include "util.h"
-
-#include "8080_status.h"
 
 unsigned            Ctl8228_debug = 1;
 

@@ -1,19 +1,14 @@
-#include "ctl8228.h"
-
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-#include "clock.h"
-#include "stub.h"
-#include "rtc.h"
-
-#include "traced.h"
-
 #include "8080_status.h"
-
 #include "bist_macros.h"
+#include "clock.h"
+#include "ctl8228.h"
+#include "rtc.h"
+#include "stub.h"
+#include "traced.h"
 
 static Byte         Data;
 

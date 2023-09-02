@@ -2,8 +2,8 @@
 
 #include <assert.h>
 
-#include "tau.h"
 #include "stub.h"
+#include "tau.h"
 
 static Cpu8080_state *s_M1T1;
 

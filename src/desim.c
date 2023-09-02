@@ -1,18 +1,15 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "tau.h"
-#include "edge.h"
-#include "clock.h"
-#include "rtc.h"
-
-#include "timing_check.h"
-
-#include "gen8224.h"
-#include "ctl8228.h"
-#include "cpu8080.h"
-
 #include "bist_macros.h"
+#include "clock.h"
+#include "cpu8080.h"
+#include "ctl8228.h"
+#include "edge.h"
+#include "gen8224.h"
+#include "rtc.h"
+#include "tau.h"
+#include "timing_check.h"
 
 static void desim_bist()
 {

@@ -1,12 +1,10 @@
-#include "clock.h"
-
 #include <assert.h>
-#include <time.h>
 #include <stdio.h>
-
-#include "rtc.h"
+#include <time.h>
 
 #include "bist_macros.h"
+#include "clock.h"
+#include "rtc.h"
 
 static void clock_hi(Tau *rises)
 {
@@ -42,7 +40,6 @@ void Clock_bench()
             max_iter = (max_iter * mint * 2.0) / dt;
         }
     }
-
 
     fprintf(stderr, "\n");
     fprintf(stderr, "Clock benchmark:\n");

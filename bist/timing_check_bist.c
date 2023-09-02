@@ -1,9 +1,8 @@
-#include "timing_check.h"
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "bist_macros.h"
+#include "timing_check.h"
 
 void timing_check_bist()
 {

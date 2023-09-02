@@ -1,9 +1,8 @@
-#include "tau.h"
-
 #include <assert.h>
 #include <stdio.h>
 
 #include "bist_macros.h"
+#include "tau.h"
 
 void Tau_bist()
 {

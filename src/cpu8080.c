@@ -2,17 +2,13 @@
 
 #include <assert.h>
 
-#include "cpu8080_reset.h"
-
-#include "edge.h"
-
 #include "8080_status.h"
-
-#include "util.h"
+#include "cpu8080_reset.h"
+#include "edge.h"
 #include "stub.h"
+#include "util.h"
 
 unsigned            Cpu8080_debug = 2;
-
 
 static int          state_tables_init_done = 0;
 static Cpu8080_state *m1t4[0400];

@@ -1,11 +1,10 @@
-#include "edge.h"
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
-#include "stub.h"
-#include "rtc.h"
 #include "bist_macros.h"
+#include "edge.h"
+#include "rtc.h"
+#include "stub.h"
 
 const char          a1[] = "HI";
 const char          a2[] = "LO";
@@ -66,7 +65,6 @@ void Edge_bench()
             max_iter = (max_iter * mint * 2.0) / dt;
         }
     }
-
 
     fprintf(stderr, "\n");
     fprintf(stderr, "Edge benchmark:\n");
