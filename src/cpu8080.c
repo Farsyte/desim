@@ -5,6 +5,7 @@
 #include "8080_instructions.h"
 #include "8080_status.h"
 #include "cpu8080_halt.h"
+#include "cpu8080_invalid.h"
 #include "cpu8080_nop.h"
 #include "cpu8080_reset.h"
 #include "edge.h"
@@ -12,35 +13,6 @@
 #include "util.h"
 
 unsigned            Cpu8080_debug = 2;
-
-static void s_invalid_reported(Cpu8080 cpu, Cpu8080_phase ph)
-{
-    (void)cpu;
-    (void)ph;
-}
-
-static void s_invalid(Cpu8080 cpu, Cpu8080_phase ph)
-{
-    (void)cpu;
-    (void)ph;
-
-    switch (ph) {
-      default:
-          break;
-      case PHI1_RISE:
-          break;
-      case PHI2_RISE:
-          break;
-      case PHI2_FALL:
-          printf("%s reached invalid state\n", cpu->name);
-          printf("  Addr: 0%o6o\n", *cpu->Addr);
-          printf("  Data: 0%o6o\n", *cpu->Data);
-          printf("  Inst: 0%o6o\n", *cpu->IR);
-
-          cpu->state_next = s_invalid_reported;
-          break;
-    }
-}
 
 static void s_tmpir(Cpu8080 cpu, Cpu8080_phase ph)
 {
@@ -174,9 +146,7 @@ void Cpu8080_linked(Cpu8080 cpu)
 
 static void Cpu8080_init_decode(Cpu8080 cpu)
 {
-    for (unsigned b = 0; b <= 0377; ++b)
-        cpu->M1T4[b] = s_invalid;
-
+    Cpu8080_init_invalid(cpu);
     Cpu8080_init_nop(cpu);
     Cpu8080_init_halt(cpu);
 }
