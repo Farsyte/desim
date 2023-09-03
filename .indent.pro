@@ -92,4 +92,5 @@
 
 -TpCpu8080
 -TCpu8080
+-TCpu8080_state
 

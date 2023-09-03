@@ -1,5 +1,8 @@
+#pragma once
+
 #include "tau.h"
 #include <stdio.h>
+
 #define STUB(...)                     \
     do {                              \
         fprintf(stderr, "%s:%d: ",    \

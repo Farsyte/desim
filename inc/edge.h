@@ -1,9 +1,8 @@
 #pragma once
 
-#include <stddef.h>
-
-#include "tau.h"
 #include "sim_types.h"
+#include "tau.h"
+#include <stddef.h>
 
 //typedef void       *EdgeArg;
 //typedef void EdgeFn (EdgeArg);
@@ -47,3 +46,4 @@ extern void         Edge_hi(Edge e);
 extern void         Edge_lo(Edge e);
 
 extern void         Edge_bist();
+extern void         Edge_bench();

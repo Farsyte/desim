@@ -1,17 +1,14 @@
-#include "ctl8228.h"
-
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-#include "clock.h"
-#include "stub.h"
-#include "rtc.h"
-
-#include "traced.h"
-
 #include "8080_status.h"
+#include "bist_macros.h"
+#include "clock.h"
+#include "ctl8228.h"
+#include "rtc.h"
+#include "stub.h"
+#include "traced.h"
 
 static Byte         Data;
 
@@ -54,10 +51,6 @@ static pTraced      trace_list[] = {
 
 static size_t       trace_count =
   sizeof trace_list / sizeof trace_list[0];
-
-static void Ctl8228_bench()
-{
-}
 
 static void dostatus(Byte status)
 {
@@ -147,16 +140,15 @@ static void dostatus(Byte status)
 
 void Ctl8228_bist()
 {
-    // bench will advance the clock quite a lot.
-    Ctl8228_bench();
+    PRINT_TOP();
 
     Edge_hi(STSTB_);
     Edge_lo(DBIN);
     Edge_hi(WR_);
     Edge_lo(HLDA);
 
-    Clock_init(1000, 18);
-    assert(TAU == 0);
+    Clock_init(18.00);
+    assert(TU == 0);
     assert(UNIT == 0);
     Ctl8228_init(ctl);
     Ctl8228_linked(ctl);
@@ -172,7 +164,7 @@ void Ctl8228_bist()
     Traced_init(tMEMR_, ctl->MEMR_, 1);
     Traced_init(tINTA_, ctl->INTA_, 1);
 
-    Tau                 umin = TAU;
+    Tau                 umin = UNIT;
 
     // exercise the signals. more complete testing will hapen when
     // hooked up to an 8224 and 8080. For now, I just have to
@@ -194,7 +186,7 @@ void Ctl8228_bist()
     for (size_t i = 0; i < trace_count; ++i)
         Traced_update(trace_list[i]);
 
-    double              us_per_unit = (TAU * 0.001) / UNIT;
+    double              us_per_unit = TU / UNIT;
 
     Tau                 maxm = 72;
     Tau                 u = umin;
@@ -211,7 +203,5 @@ void Ctl8228_bist()
             Traced_print(trace_list[i], u, hi - u);
         u = hi;
     }
-    printf("\n");
-
-    printf("Ctl8228_bist complete\n");
+    PRINT_END();
 }

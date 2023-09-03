@@ -4,10 +4,13 @@ set -euo pipefail
 
 rp=$(realpath "$0")
 dp=$(dirname "$rp")
-    
+top=$(dirname "$dp")
+tmp="$top/tmp/.indented"
+
 for f in "$@"
 do
-    o="$f".indented
+    b=$(basename "$f")
+    o="$tmp.$b"
     indent "$f" -o "$o"
     if cmp "$f" "$o" > /dev/null
     then

@@ -30,3 +30,4 @@ extern unsigned     Gen8224_debug;
 extern void         Gen8224_init(Gen8224);
 extern void         Gen8224_linked(Gen8224);
 extern void         Gen8224_bist();
+extern void         Gen8224_bench();

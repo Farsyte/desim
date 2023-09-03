@@ -1,16 +1,15 @@
-#include "cpu8080.h"
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
-#include "clock.h"
-#include "gen8224.h"
-#include "ctl8228.h"
-
+#include "8080_instructions.h"
 #include "8080_status.h"
-
-#include "traced.h"
+#include "bist_macros.h"
+#include "clock.h"
+#include "cpu8080.h"
+#include "ctl8228.h"
+#include "gen8224.h"
 #include "rtc.h"
+#include "traced.h"
 
 extern Gen8224      gen;
 extern Ctl8228      ctl;
@@ -91,7 +90,6 @@ static pTraced      trace_list[] = {
 static size_t       trace_count =
   sizeof trace_list / sizeof trace_list[0];
 
-
 Gen8224             gen = {
     {"bist.gen1", CLOCK, RESIN_, RDYIN, SYNC
      // PHI1 PHI2 RESET READY STSTB_
@@ -108,16 +106,45 @@ Cpu8080             cpu = {
      }
 };
 
+unsigned            fp_verbose = 5;
+unsigned            fp_output = 0;
+
+static void fp_verbose_adj()
+{
+    if (fp_verbose < 1)
+        return;
+    fp_output++;
+    if (fp_output < 1000)
+        return;
+    fp_output = 0;
+    fp_verbose--;
+}
+
 static void fp_memr_fall(void *arg)
 {
+    if (fp_verbose < 9)
+        return;
     (void)arg;
-    printf("%8.3f: /MEMR↓ 0%06o\n", TAU / 1000.0, *Addr);
+    printf("%8.3f: /MEMR↓ 0%06o\n", TU, *Addr);
+    fp_verbose_adj();
+}
+static void fp_memr_rise(void *arg)
+{
+    if (fp_verbose < 9)
+        return;
+    (void)arg;
+    printf("%8.3f: /MEMR↑ 0%06o 0%03o\n", TU, *Addr, *Data);
+    fp_verbose_adj();
 }
 static void fp_ststb_fall(void *arg)
 {
+    if (fp_verbose < 2)
+        return;
+
     (void)arg;
+
     Byte                status = *Data;
-    printf("%8.3f: /STSTB↓ 0%03o", TAU / 1000.0, status);
+    printf("%8.3f: /STSTB↓ 0%03o", TU, status);
     printf("%s%s%s%s%s%s%s%s",
            (status & STATUS_INTA) ? " INTA" : "",
            (status & STATUS_WO) ? "" : " /WO",
@@ -139,21 +166,33 @@ static void fp_ststb_fall(void *arg)
            (status == STATUS_HALTACK) ? " == STATUS_HALTACK" : "",
            (status == STATUS_INTACKW) ? " == STATUS_INTACKW" : "");
     printf("\n");
+    fp_verbose_adj();
 }
 static void fp_dbin_rise(void *arg)
 {
+    if (fp_verbose < 3)
+        return;
     (void)arg;
-    printf("%8.3f: DBIN↑ 0%06o\n", TAU / 1000.0, *Addr);
+    printf("%8.3f: DBIN↑%s%s 0%06o\n", TU,
+           Edge_get(MEMR_) ? "" : " /MEMR",
+           Edge_get(IOR_) ? "" : " /IOR", *Addr);
+    fp_verbose_adj();
 }
 static void fp_dbin_fall(void *arg)
 {
+    if (fp_verbose < 1)
+        return;
     (void)arg;
-    printf("%8.3f: DBIN↓ 0%06o 0%03o\n", TAU / 1000.0, *Addr, *Data);
+    // MEMR_ and IOR_ are released on DBIN falling edge,
+    // service happening before we get to this service.
+    printf("%8.3f: DBIN↓ 0%06o 0%03o\n", TU, *Addr, *Data);
+    fp_verbose_adj();
 }
 
-static void fp_print()
+static void fp_print_setup()
 {
     EDGE_FALL(MEMR_, fp_memr_fall, 0);
+    EDGE_RISE(MEMR_, fp_memr_rise, 0);
     EDGE_FALL(STSTB_, fp_ststb_fall, 0);
     EDGE_RISE(DBIN, fp_dbin_rise, 0);
     EDGE_FALL(DBIN, fp_dbin_fall, 0);
@@ -166,7 +205,7 @@ static void Cpu8080_bist_init()
     Edge_lo(HOLD);
     Edge_lo(INT);
 
-    Clock_init(1000, 18);
+    Clock_init(18.00);
 
     Gen8224_init(gen);
     Ctl8228_init(ctl);
@@ -182,24 +221,28 @@ static void sync_counter(Tau *ctr)
     ++*ctr;
 }
 
-static void Cpu8080_bench()
+void Cpu8080_bench()
 {
+    PRINT_TOP();
+
     Cpu8080_bist_init();
 
     // Initial state: RESET is asserted, READY is not.
 
-    Clock_cycle_to(TAU + 3000);
+    Clock_cycle_by(9 * 6);
 
     // Release RESET.
     Edge_hi(RESIN_);
-    Clock_cycle_to(TAU + 3500);
+    Clock_cycle_by(9 * 7);
 
     // Assert READY
     Edge_hi(RDYIN);
-    Clock_cycle_to(TAU + 5500);
+    Clock_cycle_by(9 * 11);
 
-    Tau                 delta_tau = 1000;
-    Tau                 t0, dt;
+    Tau                 delta_unit = 1000;
+    Tau                 wall_t0_ns, wall_dt_ns;
+    double              sim_t0_us = 0;
+    double              sim_dt_us = 0;
     Tau                 mint = 25000000;
 
     Tau                 sync_count = 0;
@@ -207,20 +250,25 @@ static void Cpu8080_bench()
 
     while (1) {
         sync_count = 0;
-        t0 = rtc_ns();
-        Clock_cycle_by(delta_tau);
-        dt = rtc_ns() - t0;
-        if (dt >= mint)
+
+        sim_t0_us = TU;
+        wall_t0_ns = rtc_ns();
+        Clock_cycle_by(delta_unit);
+        wall_dt_ns = rtc_ns() - wall_t0_ns;
+        sim_dt_us = TU - sim_t0_us;
+
+        if (wall_dt_ns >= mint)
             break;
-        if (dt <= mint / 10) {
-            delta_tau *= 10;
+
+        if (wall_dt_ns <= mint / 10) {
+            delta_unit *= 10;
         } else {
-            delta_tau = (delta_tau * mint * 2.0) / dt;
+            delta_unit = (delta_unit * mint * 2.0) / wall_dt_ns;
         }
     }
 
-    double              w_ms = dt / 1000000.0;
-    double              s_ms = delta_tau / 1000000.0;
+    double              w_ms = wall_dt_ns / 1000000.0;
+    double              s_ms = sim_dt_us / 1000.0;
 
     fprintf(stderr, "\n");
     fprintf(stderr, "Cpu8080 benchmark:\n");
@@ -249,15 +297,19 @@ static void Cpu8080_bench()
     // Fail this test if the ratio falls under 0.5
     //
     assert(time_ratio > 0.5);
+
+    PRINT_END();
 }
 
 void Cpu8080_bist()
 {
-    Cpu8080_bench();
+    PRINT_TOP();
 
     Cpu8080_bist_init();
 
-    fp_print();
+    printf("\n");
+
+    fp_print_setup();
 
     // Signals not imported by any module:
     //   WAIT INTE Addr INTA_ IOW_ IOR_ MEMW_ MEMR_
@@ -286,29 +338,57 @@ void Cpu8080_bist()
     Traced_init(tHLDA, HLDA, 0);
     Traced_init(tWAIT, WAIT, 0);
 
-    Tau                 umin = TAU;
+    Traced_active_boring(tRDYIN);
+    Traced_active_boring(tREADY);
+
+    Tau                 umin = UNIT;
 
     fprintf(stderr, "\nStarting cycles in Cpu8080_bist\n");
 
     // Initial state: RESET is asserted, READY is not.
 
-    Clock_cycle_to(TAU + 3000);
+    Clock_cycle_by(9 * 6);
 
     // Release RESET.
     Edge_hi(RESIN_);
-    Clock_cycle_to(TAU + 3500);
+    Clock_cycle_by(9 * 7);
 
     // Assert READY
     Edge_hi(RDYIN);
-    Clock_cycle_to(TAU + 5500);
+    Clock_cycle_by(9 * 11);
 
+    // Execute a HLT instruction
+    {
+        Tau                 end_unit = UNIT + 9 * 16;
+        while (!Edge_get(cpu->DBIN))
+            Clock_cycle();
+        while (Edge_get(ctl->MEMR_))
+            Clock_cycle();
+        *cpu->Data = I8080_HLT;
+        Clock_cycle_to(end_unit);
+    }
+
+    // Exercise RESET from HALT state
+    {
+        Tau                 release_reset = UNIT + 9 * 6;
+        Tau                 assert_ready = release_reset + 9 * 7;
+        Tau                 end_reset = assert_ready + 9 * 11;
+
+        Edge_lo(RESIN_);
+        Edge_lo(RDYIN);
+        Clock_cycle_to(release_reset);
+        Edge_hi(RESIN_);
+        Clock_cycle_to(assert_ready);
+        Edge_hi(RDYIN);
+        Clock_cycle_to(end_reset);
+    }
 
     printf("\n");
     printf("Signal Traces:\n");
     for (size_t i = 0; i < trace_count; ++i)
         Traced_update(trace_list[i]);
 
-    double              us_per_unit = (TAU * 0.001) / UNIT;
+    double              us_per_unit = TU / UNIT;
 
     Tau                 maxm = 72;
     Tau                 u = umin;
@@ -318,13 +398,12 @@ void Cpu8080_bist()
         if (hi > umax)
             hi = umax;
         printf("\n");
-        printf("From %lu to %lu u:\n", u, hi);
         printf("From %.3f to %.3f μs:\n",
                us_per_unit * u, us_per_unit * hi);
         for (size_t i = 0; i < trace_count; ++i)
             Traced_print(trace_list[i], u, hi - u);
         u = hi;
     }
-    printf("\n");
-    printf("Cpu8080_bist complete\n");
+
+    PRINT_END();
 }

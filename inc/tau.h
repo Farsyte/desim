@@ -4,17 +4,19 @@
 // simulated time. It must be possible for values of this
 // type to take on strictly ascending values as the
 // simulation moves forward through discrete time steps.
-//
-// The value of a TAU is a number of nanoseconds.
 
 typedef long Tau;
 
-// The TAU global of type Tau represents the current simulated
-// time for the engine. It increases as the simulation engine
-// steps forward from one discrete time to the next, and remains
-// constant while evaluating the simulation logic for each time.
+// The TU macro evaluates to the simulation time
+// in floating point microseconds.
 
-extern Tau          TAU;
+#define	TU	(Clock_usec())
+
+// The TAU macro evaluates to the simulation time
+// in 64-bit integer ns.
+// The use of TAU is [[DEPRECATED]] -- please use TU.
+
+#define	TAU	(Clock_nsec())
 
 // The UNIT global of type unit_t represents the integer count
 // of some basic time unit in the simulation that can be used
@@ -25,3 +27,6 @@ extern Tau          UNIT;
 
 // provide a BIST that checks that we are good.
 extern void         Tau_bist();
+
+extern Tau          Clock_nsec();
+extern double       Clock_usec();
