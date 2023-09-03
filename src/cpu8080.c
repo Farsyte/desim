@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "8080_status.h"
+#include "8080_instructions.h"
 #include "cpu8080_reset.h"
 #include "cpu8080_halt.h"
 #include "edge.h"
@@ -10,11 +11,6 @@
 #include "util.h"
 
 unsigned            Cpu8080_debug = 2;
-
-static int          state_tables_init_done = 0;
-
-static Cpu8080_state m1t4[0400];
-static Cpu8080_state m2t1[0400];
 
 static void s_invalid_reported(Cpu8080 cpu, Cpu8080_phase ph)
 {
@@ -45,25 +41,7 @@ static void s_invalid(Cpu8080 cpu, Cpu8080_phase ph)
     }
 }
 
-static void s_template(Cpu8080 cpu, Cpu8080_phase ph)
-{
-    (void)cpu;
-    (void)ph;
-
-    switch (ph) {
-      default:
-          break;
-      case PHI1_RISE:
-          break;
-      case PHI2_RISE:
-          break;
-      case PHI2_FALL:
-          cpu->state_next = s_template;
-          break;
-    }
-}
-
-static void s_m1t4x(Cpu8080 cpu, Cpu8080_phase ph)
+static void s_nop(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
       default:
@@ -73,7 +51,7 @@ static void s_m1t4x(Cpu8080 cpu, Cpu8080_phase ph)
       case PHI2_RISE:
           break;
       case PHI2_FALL:
-          cpu->state_next = m2t1[*cpu->IR];
+          cpu->state_next = cpu->M1T1;
           break;
     }
 }
@@ -90,7 +68,7 @@ static void s_tmpir(Cpu8080 cpu, Cpu8080_phase ph)
           Edge_lo(cpu->DBIN);
           break;
       case PHI2_FALL:
-          cpu->state_next = m1t4[*cpu->IR];
+          cpu->state_next = cpu->M1T4[*cpu->IR];
           break;
     }
 }
@@ -208,29 +186,17 @@ void Cpu8080_linked(Cpu8080 cpu)
     EDGE_FALL(cpu->PHI2, phi2_fall, cpu);
 }
 
-static void init_decode()
+static void Cpu8080_init_decode(Cpu8080 cpu)
 {
-    if (state_tables_init_done)
-        return;
+    for (unsigned b = 0; b <= 0377; ++b)
+        cpu->M1T4[b] = s_invalid;
 
-    m1t4[0000] = s_template;
-    m2t1[0000] = s_template;
-
-    for (unsigned b = 0; b <= 0377; ++b) {
-        m1t4[b] = s_invalid;
-        m2t1[b] = s_fetch;
-    }
-
-    // 00 000 000 NOP
-    m1t4[0000] = s_m1t4x;
-    m2t1[0000] = s_fetch;
-
-    state_tables_init_done = 1;
+    cpu->M1T4[I8080_NOP] = s_nop;
+    Cpu8080_init_halt(cpu);
 }
 
 void Cpu8080_init(Cpu8080 cpu)
 {
-    init_decode();
 
     assert(cpu);
     assert(cpu->name);
@@ -256,8 +222,7 @@ void Cpu8080_init(Cpu8080 cpu)
     Edge_init(cpu->HLDA);
 
     cpu->M1T1 = s_fetch;
-    cpu->M1T4_X = s_m1t4x;
 
+    Cpu8080_init_decode(cpu);
     Cpu8080_init_reset(cpu);
-    Cpu8080_init_halt(cpu, m1t4, m2t1);
 }

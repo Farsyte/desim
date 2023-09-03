@@ -65,11 +65,13 @@ typedef struct sCpu8080 {
     //    pReg8               rpl;
 
     // Publish state handlers for specific shared states.
-    Cpu8080_state       M1T1;
-    Cpu8080_state       M1T4_X;
 
     Cpu8080_state       state_next;
     Cpu8080_state       state;
+
+    Cpu8080_state       M1T1;
+    Cpu8080_state       M1T4[0400];
+
 }                  *pCpu8080, Cpu8080[1];
 
 extern unsigned     Cpu8080_debug;

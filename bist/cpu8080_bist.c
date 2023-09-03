@@ -106,36 +106,40 @@ Cpu8080             cpu = {
      }
 };
 
-unsigned fp_verbose = 5;
-unsigned fp_output = 0;
+unsigned            fp_verbose = 5;
+unsigned            fp_output = 0;
 
-static void fp_verbose_adj() {
+static void fp_verbose_adj()
+{
     if (fp_verbose < 1)
         return;
-    fp_output ++;
+    fp_output++;
     if (fp_output < 1000)
         return;
     fp_output = 0;
-    fp_verbose --;
+    fp_verbose--;
 }
 
 static void fp_memr_fall(void *arg)
 {
-    if (fp_verbose < 9) return;
+    if (fp_verbose < 9)
+        return;
     (void)arg;
     printf("%8.3f: /MEMR↓ 0%06o\n", TAU / 1000.0, *Addr);
     fp_verbose_adj();
 }
 static void fp_memr_rise(void *arg)
 {
-    if (fp_verbose < 9) return;
+    if (fp_verbose < 9)
+        return;
     (void)arg;
     printf("%8.3f: /MEMR↑ 0%06o 0%03o\n", TAU / 1000.0, *Addr, *Data);
     fp_verbose_adj();
 }
 static void fp_ststb_fall(void *arg)
 {
-    if (fp_verbose < 2) return;
+    if (fp_verbose < 2)
+        return;
 
     (void)arg;
 
@@ -166,22 +170,22 @@ static void fp_ststb_fall(void *arg)
 }
 static void fp_dbin_rise(void *arg)
 {
-    if (fp_verbose < 3) return;
+    if (fp_verbose < 3)
+        return;
     (void)arg;
     printf("%8.3f: DBIN↑%s%s 0%06o\n", TAU / 1000.0,
            Edge_get(MEMR_) ? "" : " /MEMR",
-           Edge_get(IOR_) ? "" : " /IOR",
-           *Addr);
+           Edge_get(IOR_) ? "" : " /IOR", *Addr);
     fp_verbose_adj();
 }
 static void fp_dbin_fall(void *arg)
 {
-    if (fp_verbose < 1) return;
+    if (fp_verbose < 1)
+        return;
     (void)arg;
     // MEMR_ and IOR_ are released on DBIN falling edge,
     // service happening before we get to this service.
-    printf("%8.3f: DBIN↓ 0%06o 0%03o\n", TAU / 1000.0,
-           *Addr, *Data);
+    printf("%8.3f: DBIN↓ 0%06o 0%03o\n", TAU / 1000.0, *Addr, *Data);
     fp_verbose_adj();
 }
 
@@ -348,7 +352,7 @@ void Cpu8080_bist()
 
     // Execute a HLT instruction
     {
-        Tau end_hlt = TAU + 8000;
+        Tau                 end_hlt = TAU + 8000;
         while (!Edge_get(cpu->DBIN))
             Clock_cycle();
         while (Edge_get(ctl->MEMR_))
@@ -359,9 +363,9 @@ void Cpu8080_bist()
 
     // Exercise RESET from HALT state
     {
-        Tau release_reset = TAU + 3000;
-        Tau assert_ready = release_reset + 3500;
-        Tau end_reset = assert_ready + 5500;
+        Tau                 release_reset = TAU + 3000;
+        Tau                 assert_ready = release_reset + 3500;
+        Tau                 end_reset = assert_ready + 5500;
 
         Edge_lo(RESIN_);
         Edge_lo(RDYIN);

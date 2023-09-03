@@ -62,11 +62,22 @@ static void s_halt_M2T1(Cpu8080 cpu, Cpu8080_phase ph)
     }
 }
 
-void Cpu8080_init_halt(Cpu8080 cpu,
-                       Cpu8080_state m1t4[0377],
-                       Cpu8080_state m2t1[0377])
+static void s_halt_M1T4(Cpu8080 cpu, Cpu8080_phase ph)
 {
-    // 01 110 110 HLT
-    m1t4[0166] = cpu->M1T4_X;
-    m2t1[0166] = s_halt_M2T1;
+    switch (ph) {
+      default:
+          break;
+      case PHI1_RISE:
+          break;
+      case PHI2_RISE:
+          break;
+      case PHI2_FALL:
+          cpu->state_next = s_halt_M2T1;
+          break;
+    }
+}
+
+void Cpu8080_init_halt(Cpu8080 cpu)
+{
+    cpu->M1T4[I8080_HLT] = s_halt_M1T4;
 }

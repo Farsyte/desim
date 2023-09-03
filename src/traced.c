@@ -20,7 +20,8 @@ void Traced_init(Traced t, Edge e, int active_low)
     t->boring_char = ',';
 }
 
-void Traced_active_boring(Traced t) {
+void Traced_active_boring(Traced t)
+{
     t->boring_char = '#';
 }
 
@@ -82,7 +83,7 @@ void Traced_print(Traced t, Tau umin, Tau ulen)
 
     const char         *s = t->trace_buf + umin;
     int                 boring = 1;
-    char bc = t->boring_char;
+    char                bc = t->boring_char;
     for (Tau i = 1; i < ulen; ++i)
         if (s[i] != bc)
             boring = 0;
