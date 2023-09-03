@@ -69,9 +69,13 @@ typedef struct sCpu8080 {
     Cpu8080_state       state_next;
     Cpu8080_state       state;
 
+
     Cpu8080_state       M1T1;
     Cpu8080_state       M1T4[0400];
 
+    // control logic selects from these state functions
+    // when updating the M1T1 to use next.
+    Cpu8080_state       fetch;
 }                  *pCpu8080, Cpu8080[1];
 
 extern unsigned     Cpu8080_debug;
