@@ -64,6 +64,8 @@ typedef struct sCpu8080 {
     //    pReg8               rph;
     //    pReg8               rpl;
 
+    Edge INTE_FF;
+
     // Publish state handlers for specific shared states.
 
     Cpu8080_state       state_next;

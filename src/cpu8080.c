@@ -5,7 +5,8 @@
 #include "8080_instructions.h"
 #include "8080_status.h"
 #include "cpu8080_fetch.h"
-#include "cpu8080_halt.h"
+#include "cpu8080_hlt.h"
+#include "cpu8080_int.h"
 #include "cpu8080_invalid.h"
 #include "cpu8080_m1t1.h"
 #include "cpu8080_nop.h"
@@ -74,7 +75,8 @@ static void Cpu8080_init_decode(Cpu8080 cpu)
     Cpu8080_init_invalid(cpu);
     Cpu8080_init_fetch(cpu);
     Cpu8080_init_nop(cpu);
-    Cpu8080_init_halt(cpu);
+    Cpu8080_init_hlt(cpu);
+    Cpu8080_init_int(cpu);
 
     Cpu8080_init_M1T1(cpu);
 }
@@ -103,6 +105,9 @@ void Cpu8080_init(Cpu8080 cpu)
 
     cpu->HLDA->name = format("%s.HLDA", cpu->name);
     Edge_init(cpu->HLDA);
+
+    cpu->INTE_FF->name = format("%s.INTE_FF", cpu->name);
+    Edge_init(cpu->INTE_FF);
 
     Cpu8080_init_decode(cpu);
     Cpu8080_init_reset(cpu);
