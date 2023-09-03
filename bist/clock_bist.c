@@ -1,9 +1,9 @@
-#include "clock.h"
-
 #include <assert.h>
-#include <time.h>
 #include <stdio.h>
+#include <time.h>
 
+#include "bist_macros.h"
+#include "clock.h"
 #include "rtc.h"
 
 static void clock_hi(Tau *rises)
@@ -16,8 +16,12 @@ static void clock_lo(Tau *falls)
     (*falls)++;
 }
 
-static void Clock_bench()
+void Clock_bench()
 {
+    PRINT_TOP();
+
+    Clock_init(18.00);
+
     Tau                 max_iter = 1000;
     Tau                 t0, dt;
     Tau                 mint = 25000000;
@@ -37,29 +41,29 @@ static void Clock_bench()
         }
     }
 
-
     fprintf(stderr, "\n");
     fprintf(stderr, "Clock benchmark:\n");
     fprintf(stderr, "  max_iter is %lu\n", max_iter);
-    fprintf(stderr, "  elapsed time is %.3f ms\n", dt / 1000.0);
+    fprintf(stderr, "  elapsed time is %.3f ms\n", dt / 1000000.0);
 
-    double              ns_per_call = dt * 1.0 / max_iter;
+    double              ps_per_call = dt * 1.0 / max_iter;
 
-    fprintf(stderr, "  time per count is %.3f ns\n", ns_per_call);
+    fprintf(stderr, "  time per count is %.3f ps\n", ps_per_call);
     fprintf(stderr, "\n");
 
     // typically at -O2 and -O3 this is 5-6 ns.
     // even at -g -O0, we should be around 12 ns,
     // fail this test if we hit 50 ns.
-    assert(ns_per_call < 50.0);
+    assert(ps_per_call < 500.0);
+
+    PRINT_END();
 }
 
 void Clock_bist()
 {
-    Clock_init(1000, 18);
+    PRINT_TOP();
 
-    TAU = 0;
-    UNIT = 0;
+    Clock_init(18.00);
 
     Tau                 rises = 0;
     EDGE_RISE(CLOCK, clock_hi, &rises);
@@ -67,18 +71,15 @@ void Clock_bist()
     Tau                 falls = 0;
     EDGE_FALL(CLOCK, clock_lo, &falls);
 
-    for (int i = 1; i <= 18; ++i) {
+    for (int i = 1; i <= 180; ++i) {
         Clock_cycle();
         assert(rises == i);
         assert(falls == i);
         assert(UNIT == i);
-        // fprintf(stderr, "%3lu: expected %lu, observed %lu\n", UNIT, (UNIT*500)/9 , TAU);
-        assert(TAU == (i * 500) / 9);
+        assert(TU == i / 18.0);
     }
 
-    assert(TAU == 1000);
+    assert(TU == 10.0);
 
-    Clock_bench();
-
-    printf("Clock_bist complete\n");
+    PRINT_END();
 }

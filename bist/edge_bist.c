@@ -1,10 +1,10 @@
-#include "edge.h"
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
-#include "stub.h"
+#include "bist_macros.h"
+#include "edge.h"
 #include "rtc.h"
+#include "stub.h"
 
 const char          a1[] = "HI";
 const char          a2[] = "LO";
@@ -26,6 +26,8 @@ static void tock(State arg)
 
 void Edge_bench()
 {
+    PRINT_TOP();
+
     Edge                e = { {"BENCHEDGE"} };
     State               s;
 
@@ -64,7 +66,6 @@ void Edge_bench()
         }
     }
 
-
     fprintf(stderr, "\n");
     fprintf(stderr, "Edge benchmark:\n");
     fprintf(stderr, "  count is %lu ticks, %lu tocks\n",
@@ -83,6 +84,7 @@ void Edge_bench()
     // fail this test if we hit 20 ns.
     assert(ns_per_call < 20.0);
 
+    PRINT_END();
 }
 
 static void s1(const char msg[])
@@ -100,6 +102,10 @@ static void s3(const char msg[])
 
 void Edge_bist()
 {
+    PRINT_TOP();
+
+    printf("\n");
+
     Edge                a = { {"SIGA"} };
     Edge                b = { {"SIGB"} };
     Edge                c = { {"SIGC"} };
@@ -165,7 +171,5 @@ void Edge_bist()
 
     // PASS if output matches the reference output.
 
-    // TODO add unit tests for "Edge" facility
-    Edge_bench();
-    printf("Edge_bist complete\n");
+    PRINT_END();
 }

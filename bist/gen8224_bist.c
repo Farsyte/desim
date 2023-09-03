@@ -1,14 +1,12 @@
-#include "gen8224.h"
-
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
+#include "bist_macros.h"
 #include "clock.h"
-#include "stub.h"
+#include "gen8224.h"
 #include "rtc.h"
-
+#include "stub.h"
 #include "timing_check.h"
 #include "traced.h"
 
@@ -95,99 +93,107 @@ static TimingCheck  tRS = { {"RS", 120, 0} };   // this is the 8080 requirement
 static void phi1_rise(void *arg)
 {
     (void)arg;
-    timing_check_record(tCY, TAU);
-    timing_check_start(tCY, TAU);
-    timing_check_record(tD2, TAU);
-    timing_check_start(tD3, TAU);
-    timing_check_start(tPhi1, TAU);
+    timing_check_record(tCY);
+    timing_check_start(tCY);
+    timing_check_record(tD2);
+    timing_check_start(tD3);
+    timing_check_start(tPhi1);
 }
 
 static void phi1_fall(void *arg)
 {
     (void)arg;
-    timing_check_record(tPhi1, TAU);
-    timing_check_start(tD1, TAU);
+    timing_check_record(tPhi1);
+    timing_check_start(tD1);
 }
 
 static void phi2_rise(void *arg)
 {
     (void)arg;
-    timing_check_record(tD1, TAU);
-    timing_check_record(tD3, TAU);
-    timing_check_start(tPhi2, TAU);
-    timing_check_start(tDSS, TAU);
+    timing_check_record(tD1);
+    timing_check_record(tD3);
+    timing_check_start(tPhi2);
+    timing_check_start(tDSS);
 }
 
 static void phi2_fall(void *arg)
 {
     (void)arg;
-    timing_check_record(tDR, TAU);
-    timing_check_record(tPhi2, TAU);
-    timing_check_start(tD2, TAU);
-    timing_check_record(tRS, TAU);
+    timing_check_record(tDR);
+    timing_check_record(tPhi2);
+    timing_check_start(tD2);
+    timing_check_record(tRS);
 }
 
 static void ready_change(void *arg)
 {
     (void)arg;
-    timing_check_start(tRS, TAU);
-    timing_check_record(tDRH, TAU);
-    timing_check_start(tDR, TAU);
+    timing_check_start(tRS);
+    timing_check_record(tDRH);
+    timing_check_start(tDR);
 }
 
 static void reset_change(void *arg)
 {
     (void)arg;
-    timing_check_start(tRS, TAU);
-    timing_check_record(tDRH, TAU);
-    timing_check_start(tDR, TAU);
+    timing_check_start(tRS);
+    timing_check_record(tDRH);
+    timing_check_start(tDR);
 }
 
 static void ststb_fall(void *arg)
 {
     (void)arg;
-    timing_check_record(tDSS, TAU);
-    timing_check_start(tPW, TAU);
-    timing_check_start(tDRH, TAU);
+    timing_check_record(tDSS);
+    timing_check_start(tPW);
+    timing_check_start(tDRH);
 }
 
 static void ststb_rise(void *arg)
 {
     (void)arg;
-    timing_check_record(tPW, TAU);
+    timing_check_record(tPW);
 }
 
-static void Gen8224_bench()
+void Gen8224_bench()
 {
+    PRINT_TOP();
+
     Edge_hi(SYNC);      /* no cpu, mostly test with SYNC always asserted */
     Edge_lo(RESIN_);    /* start with RESIN asserted */
     Edge_lo(RDYIN);     /* start with RDYIN not asserted */
 
-    Clock_init(1000, 18);
+    Clock_init(18.00);
     assert(TAU == 0);
     assert(UNIT == 0);
     Gen8224_init(gen);
     Gen8224_linked(gen);
 
-    Tau                 delta_tau = 1000;
-    Tau                 t0, dt;
+    Tau                 delta_unit = 1000;
+    Tau                 wall_t0_ns, wall_dt_ns;
+    double              sim_t0_us = 0;
+    double              sim_dt_us = 0;
     Tau                 mint = 25000000;
 
     while (1) {
-        t0 = rtc_ns();
-        Clock_cycle_by(delta_tau);
-        dt = rtc_ns() - t0;
-        if (dt >= mint)
+
+        sim_t0_us = TU;
+        wall_t0_ns = rtc_ns();
+        Clock_cycle_by(delta_unit);
+        wall_dt_ns = rtc_ns() - wall_t0_ns;
+        sim_dt_us = TU - sim_t0_us;
+
+        if (wall_dt_ns >= mint)
             break;
-        if (dt <= mint / 10) {
-            delta_tau *= 10;
+        if (wall_dt_ns <= mint / 10) {
+            delta_unit *= 10;
         } else {
-            delta_tau = (delta_tau * mint * 2.0) / dt;
+            delta_unit = (delta_unit * mint * 2.0) / wall_dt_ns;
         }
     }
 
-    double              w_ms = dt / 1000000.0;
-    double              s_ms = delta_tau / 1000000.0;
+    double              w_ms = wall_dt_ns / 1000000.0;
+    double              s_ms = sim_dt_us / 1000.0;
 
     fprintf(stderr, "\n");
     fprintf(stderr, "Gen8224 benchmark:\n");
@@ -212,18 +218,19 @@ static void Gen8224_bench()
     // Fail this test if the ratio falls under 0.5
     //
     assert(time_ratio > 0.5);
+
+    PRINT_END();
 }
 
 void Gen8224_bist()
 {
-    // bench will advance the clock quite a lot.
-    Gen8224_bench();
+    PRINT_TOP();
 
     // complete reset.
     // Note that the init routines blow away
     // the subscriber lists.
-    Clock_init(1000, 18);
-    assert(TAU == 0);
+    Clock_init(18.00);
+    assert(TU == 0);
     assert(UNIT == 0);
     Gen8224_init(gen);
     Gen8224_linked(gen);
@@ -243,10 +250,14 @@ void Gen8224_bist()
     Traced_init(tREADY, gen->READY, 0);
     Traced_init(tSTSTB_, gen->STSTB_, 1);
 
+    Traced_active_boring(tSYNC);
+    Traced_active_boring(tRDYIN);
+    Traced_active_boring(tREADY);
+
     Tau                 umin = UNIT;
 
     // Run for a while with reset and ready both low
-    Clock_cycle_by(2000);
+    Clock_cycle_by(4 * 9);
 
     /// Now start capturing information about the signals.
 
@@ -263,33 +274,33 @@ void Gen8224_bist()
     EDGE_RISE(gen->STSTB_, ststb_rise, "");
 
     // Run for a while with reset and ready both low
-    Clock_cycle_by(2000);
+    Clock_cycle_by(4 * 9);
 
     for (int outer = 0; outer < 18; ++outer) {
         Edge_set(RESIN_, !Edge_get(RESIN_));
-        Clock_cycle_by(1000);
+        Clock_cycle_by(2 * 9);
         Edge_set(RESIN_, !Edge_get(RESIN_));
-        Clock_cycle_by(1000);
+        Clock_cycle_by(2 * 9);
         Clock_cycle();  // slip us one inner phase
     }
 
     Edge_hi(RESIN_);
-    Clock_cycle_by(2000);
+    Clock_cycle_by(4 * 9);
 
     for (int outer = 0; outer < 18; ++outer) {
         Edge_set(RDYIN, !Edge_get(RDYIN));
-        Clock_cycle_by(1000);
+        Clock_cycle_by(2 * 9);
         Edge_set(RDYIN, !Edge_get(RDYIN));
-        Clock_cycle_by(1000);
+        Clock_cycle_by(2 * 9);
         Clock_cycle();  // slip us one inner phase
     }
 
     Edge_hi(RDYIN);
-    Clock_cycle_by(2000);
+    Clock_cycle_by(4 * 9);
 
     // Testing without a CPU, just hold SYNC high.
     Edge_hi(SYNC);
-    Clock_cycle_by(10000);
+    Clock_cycle_by(20 * 9);
 
     printf("\n");
     printf("Timing Checks:\n");
@@ -310,7 +321,7 @@ void Gen8224_bist()
     for (size_t i = 0; i < trace_count; ++i)
         Traced_update(trace_list[i]);
 
-    double              us_per_unit = (TAU * 0.001) / UNIT;
+    double              us_per_unit = TU / UNIT;
 
     Tau                 maxm = 72;
     Tau                 u = umin;
@@ -320,14 +331,11 @@ void Gen8224_bist()
         if (hi > umax)
             hi = umax;
         printf("\n");
-        printf("From %lu to %lu u:\n", u, hi);
         printf("From %.3f to %.3f μs:\n",
                us_per_unit * u, us_per_unit * hi);
         for (size_t i = 0; i < trace_count; ++i)
             Traced_print(trace_list[i], u, hi - u);
         u = hi;
     }
-    printf("\n");
-
-    printf("Gen8224_bist complete\n");
+    PRINT_END();
 }

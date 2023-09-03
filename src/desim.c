@@ -1,22 +1,19 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "tau.h"
-#include "edge.h"
+#include "bist_macros.h"
 #include "clock.h"
+#include "cpu8080.h"
+#include "ctl8228.h"
+#include "edge.h"
+#include "gen8224.h"
 #include "rtc.h"
-
+#include "tau.h"
 #include "timing_check.h"
 
-#include "gen8224.h"
-#include "ctl8228.h"
-#include "cpu8080.h"
-
-int main(int argc, char **argv)
+static void desim_bist()
 {
-    (void)argc;
-    (void)argv;
-
+    PRINT_TOP();
     rtc_bist();
     timing_check_bist();
 
@@ -26,6 +23,30 @@ int main(int argc, char **argv)
     Gen8224_bist();
     Ctl8228_bist();
     Cpu8080_bist();
+    PRINT_END();
+}
 
-    printf("%s complete\n", argv[0]);
+static void desim_bench()
+{
+    PRINT_TOP();
+
+    Edge_bench();
+    Clock_bench();
+    Gen8224_bench();
+    // Ctl8228_bench();
+    Cpu8080_bench();
+    PRINT_END();
+}
+
+int main(int argc, char **argv)
+{
+    PRINT_TOP();
+
+    (void)argc;
+    (void)argv;
+
+    desim_bist();
+    desim_bench();
+
+    PRINT_END();
 }

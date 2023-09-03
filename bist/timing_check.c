@@ -3,7 +3,10 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "clock.h"
 #include "util.h"
+
+#define UNITS_TO_NS(u)	((Tau)(u * 1000.0 / Clock_MHz))
 
 void timing_check_init(TimingCheck e)
 {
@@ -17,35 +20,38 @@ void timing_check_init(TimingCheck e)
     e->hi = e->lb;
 }
 
-void timing_check_start(TimingCheck e, Tau t0)
+void timing_check_start(TimingCheck e)
 {
-    e->from = t0;
+    e->from = UNIT;
+}
+
+void timing_check_record(TimingCheck e)
+{
+    if (e->from <= 0)
+        return;
+    unsigned            c = e->count;
+    Tau                 elapsed = UNIT - e->from;
+    if (!c || e->lo > elapsed)
+        e->lo = elapsed;
+    if (!c || e->hi < elapsed)
+        e->hi = elapsed;
+    e->from = 0;
+    e->count = c + 1;
 }
 
 unsigned timing_check_fails(TimingCheck e)
 {
     unsigned            ret = 0;
+
     if (!e->count)
         return TIMING_CHECK_NO;
-    if (e->lb && e->lo < e->lb)
-        ret |= TIMING_CHECK_LB;
-    if (e->ub && e->hi > e->ub)
-        ret |= TIMING_CHECK_UB;
-    return ret;
-}
 
-void timing_check_record(TimingCheck e, Tau tF)
-{
-    if (e->from <= 0)
-        return;
-    unsigned            c = e->count;
-    e->elapsed = tF - e->from;
-    if (!c || e->lo > e->elapsed)
-        e->lo = e->elapsed;
-    if (!c || e->hi < e->elapsed)
-        e->hi = e->elapsed;
-    e->from = 0;
-    e->count = c + 1;
+    if (e->lb && UNITS_TO_NS(e->lo) < e->lb)
+        ret |= TIMING_CHECK_LB;
+    if (e->ub && UNITS_TO_NS(e->hi) > e->ub)
+        ret |= TIMING_CHECK_UB;
+
+    return ret;
 }
 
 void timing_check_print(TimingCheck e)
@@ -69,7 +75,8 @@ void timing_check_print(TimingCheck e)
     if (fb & TIMING_CHECK_NO) {
         printf(" -- FAIL, NO samples observed");
     } else {
-        printf(", saw %lu to %lu ns", e->lo, e->hi);
+        printf(", saw %lu to %lu ns",
+               UNITS_TO_NS(e->lo), UNITS_TO_NS(e->hi));
         if (fb) {
             printf(" -- FAIL,");
             if (fb & TIMING_CHECK_LB)

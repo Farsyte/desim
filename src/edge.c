@@ -1,10 +1,10 @@
 #include "edge.h"
 
-#include <malloc.h>
 #include <assert.h>
+#include <malloc.h>
 
-#include "tau.h"
 #include "stub.h"
+#include "tau.h"
 
 unsigned            Edge_debug = 1;
 
