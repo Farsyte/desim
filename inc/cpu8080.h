@@ -69,7 +69,6 @@ typedef struct sCpu8080 {
     Cpu8080_state       state_next;
     Cpu8080_state       state;
 
-
     Cpu8080_state       M1T1;
     Cpu8080_state       M1T4[0400];
 

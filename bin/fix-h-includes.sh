@@ -2,11 +2,16 @@
 # set -euo pipefail
 # set -x
 
+rp=$(realpath "$0")
+dp=$(dirname "$rp")
+top=$(dirname "$dp")
+tmp="$top/tmp/.hfix"
+
 for h in "$@"
 do
     d=$(dirname "$h")
     b=$(basename "$h")
-    o=$d/$b.fix-h-includes
+    o="$tmp.$b.c"
 
     (
         echo '#pragma once' > $o

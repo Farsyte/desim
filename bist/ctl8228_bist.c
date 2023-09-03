@@ -147,8 +147,8 @@ void Ctl8228_bist()
     Edge_hi(WR_);
     Edge_lo(HLDA);
 
-    Clock_init(1000, 18);
-    assert(TAU == 0);
+    Clock_init(18.00);
+    assert(TU == 0);
     assert(UNIT == 0);
     Ctl8228_init(ctl);
     Ctl8228_linked(ctl);
@@ -164,7 +164,7 @@ void Ctl8228_bist()
     Traced_init(tMEMR_, ctl->MEMR_, 1);
     Traced_init(tINTA_, ctl->INTA_, 1);
 
-    Tau                 umin = TAU;
+    Tau                 umin = UNIT;
 
     // exercise the signals. more complete testing will hapen when
     // hooked up to an 8224 and 8080. For now, I just have to
@@ -186,7 +186,7 @@ void Ctl8228_bist()
     for (size_t i = 0; i < trace_count; ++i)
         Traced_update(trace_list[i]);
 
-    double              us_per_unit = (TAU * 0.001) / UNIT;
+    double              us_per_unit = TU / UNIT;
 
     Tau                 maxm = 72;
     Tau                 u = umin;

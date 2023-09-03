@@ -27,7 +27,7 @@ the idea of using Capitalized words for class names, while still
 keeping the C convention of Keep It Short.
 
 Examples:
-- TAU is the time variable, of type Tau.
+- UNIT is the time variable, of type Tau.
 - CLOCK is the clock signal, of type Edge.
 - RSTIN_ is the reset input signal, of type Edge, which is active-low.
 
@@ -69,17 +69,17 @@ in other structures that own the data.
 
 ** Time
 
-Time is represented by two global variables in the system, both of
-which are of type Tau, which is intended to be a type that can
+Time is represented by one global variables in the system, of
+type Tau, which is intended to be a type that can
 maintain a monotonically increasing value, without loss of precision,
 across the whole span of any useful simulation.
 
-The two variables are TAU and UNIT. TAU represents elapsed simulated
-time in some unit useful to the user -- 64-bit unsigned nanoseconds
-seems to be suitable for simluation of 50 year old digital logic. UNIT
-is expected to increment once for each cycle of the fastest clock in
-the system, allowing UNIT to easily be used as an array index when
-working with signal trace data for display.
+This variable is UNIT, and it is incremented by one each time the
+clock cycles to the next discrete time.
+
+The Clock package knows the frequency and period, and can be asked
+to compute the simulation time in floating point microseconds by
+calling the TU macro.
 
 *** ---
 
@@ -119,9 +119,8 @@ initial collection of non-core simulation modules are centered around
 the Intel 8080, evaluations of this code use an 18.00 MHz clock rate,
 giving a period of 55 5/9 ns.
 
-The module generates a rising edge on CLOCK, then a falling edge. The
-global time values TAU and UNIT are advanced after the falling edge to
-the time of the next rising edge.
+The module generates a rising edge on CLOCK, then a falling edge; after
+both edges are processed, UNIT is incremented.
 
 Currently there is one and only one Clock, embodied in the CLOCK
 signal and in file-local scope data owned by the implementation.
@@ -145,10 +144,13 @@ the first from the return value of the second.
 
 ** Timing: verify simulated timing of events
 
-This package provides for observing the change-in-TAU at a recording
+This package provides for observing the change-in-UNIT at a recording
 event since the last starting event, tracking the range of values
 observed, and comparing with the allowed range. Typically the start
 and record functions will be called from Edge-triggered code.
+
+Methods for sampling time work with UNIT values for speed; time limits
+are specified in nanoseconds.
 
 This is intended to be used by simulation modules to verify that the
 timing of the simulated signals is within limits specified in the data

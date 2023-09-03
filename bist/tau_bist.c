@@ -7,8 +7,7 @@
 void Tau_bist()
 {
     PRINT_TOP();
-    // TAU and UNIT need to be more than 4 bytes.
-    assert(sizeof(TAU) > 4);
-    assert(sizeof(UNIT) > 4);
+    // Tau values need to be more than 4 bytes.
+    assert(sizeof(Tau) > 4);
     PRINT_END();
 }

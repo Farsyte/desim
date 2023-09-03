@@ -2,16 +2,21 @@
 # set -euo pipefail
 # set -x
 
+rp=$(realpath "$0")
+dp=$(dirname "$rp")
+top=$(dirname "$dp")
+tmp="$top/tmp/.cfix"
+
 for c in "$@"
 do
     d=$(dirname "$c")
     b=$(basename "$c" .c)
-    o=$d/$b.c.fix-c-includes
+    o="$tmp.$b.c"
 
     (
         (
-            printf '#include "%s.h"\n' "$b"
-            echo
+            [ ! -e "$top/inc/$b.h" ] ||
+                printf '#include "%s.h"\n\n' "$b"
             grep '#include <' < $c | sort
             echo
             grep '#include "' < $c | sort

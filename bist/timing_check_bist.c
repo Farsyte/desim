@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "clock.h"
 #include "bist_macros.h"
 #include "timing_check.h"
 
@@ -10,7 +11,13 @@ void timing_check_bist()
 
     printf("\n");
 
-    TimingCheck         e = { {"τ", 60, 90} };
+    Clock_init(18.00);
+    Clock_cycle_by(9);
+
+    // 55 111 166 222 277 333 388 444 500 ...
+
+    // allow 3 or 4 units.
+    TimingCheck         e = { {"τ", 150, 250} };
 
     timing_check_init(e);
 
@@ -18,24 +25,41 @@ void timing_check_bist()
 
     timing_check_print(e);      // indicate failure code NO
 
-    timing_check_start(e, 0);
-    timing_check_start(e, 100);
-    timing_check_record(e, 170);
-    timing_check_start(e, 200);
-    timing_check_record(e, 280);
+    // gather some non-failure data.
+
+    timing_check_start(e);
+    Clock_cycle_by(9);
+    timing_check_start(e);
+    Clock_cycle_by(3);
+    timing_check_record(e);
+    Clock_cycle_by(6);
+    timing_check_start(e);
+    Clock_cycle_by(4);
+    timing_check_record(e);
+    Clock_cycle_by(5);
 
     assert(!timing_check_fails(e));
 
     timing_check_print(e);      // show a good run, everyone in range
 
-    timing_check_start(e, 300);
-    timing_check_record(e, 350);
+    // induce a lower bound failure.
+
+    Clock_cycle_by(9);
+    timing_check_start(e);
+    Clock_cycle_by(2);
+    timing_check_record(e);
+    Clock_cycle_by(7);
 
     timing_check_print(e);      // indicate failure code LB
     assert(TIMING_CHECK_LB == timing_check_fails(e));
 
-    timing_check_start(e, 400);
-    timing_check_record(e, 499);
+    // induce an upper bound failure.
+
+    Clock_cycle_by(9);
+    timing_check_start(e);
+    Clock_cycle_by(5);
+    timing_check_record(e);
+    Clock_cycle_by(4);
 
     timing_check_print(e);      // indicate failure codes LB UB
     assert(TIMING_CHECK_UBLB == timing_check_fails(e));

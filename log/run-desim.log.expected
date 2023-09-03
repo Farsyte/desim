@@ -9,10 +9,10 @@
 
 === === TOP timing_check_bist
 
-TimingCheck: τ allowed 60 to 90 ns -- FAIL, NO samples observed
-TimingCheck: τ allowed 60 to 90 ns, saw 70 to 80 ns
-TimingCheck: τ allowed 60 to 90 ns, saw 50 to 80 ns -- FAIL, LB timing violation(s).
-TimingCheck: τ allowed 60 to 90 ns, saw 50 to 99 ns -- FAIL, LB UB timing violation(s).
+TimingCheck: τ allowed 150 to 250 ns -- FAIL, NO samples observed
+TimingCheck: τ allowed 150 to 250 ns, saw 166 to 222 ns
+TimingCheck: τ allowed 150 to 250 ns, saw 111 to 222 ns -- FAIL, LB timing violation(s).
+TimingCheck: τ allowed 150 to 250 ns, saw 111 to 277 ns -- FAIL, LB UB timing violation(s).
 
 *** *** end timing_check_bist
 
@@ -57,10 +57,10 @@ TimingCheck: CY allowed 480 to 2000 ns, saw 500 to 500 ns
 TimingCheck: Φ₁ at least 91 ns, saw 111 to 111 ns
 TimingCheck: Φ₂ at least 242 ns, saw 277 to 277 ns
 TimingCheck: D1 no bounds checked, saw 0 to 0 ns
-TimingCheck: D2 at least 97 ns, saw 112 to 112 ns
+TimingCheck: D2 at least 97 ns, saw 111 to 111 ns
 TimingCheck: D3 allowed 111 to 132 ns, saw 111 to 111 ns
 TimingCheck: DSS allowed 303 to 334 ns, saw 333 to 333 ns
-TimingCheck: PW at least 25 ns, saw 56 to 56 ns
+TimingCheck: PW at least 25 ns, saw 55 to 55 ns
 TimingCheck: DRH at least 217 ns, saw 222 to 222 ns
 TimingCheck: DR at least 197 ns, saw 222 to 222 ns
 TimingCheck: RS at least 120 ns, saw 222 to 222 ns

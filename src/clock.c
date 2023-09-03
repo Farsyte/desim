@@ -8,65 +8,48 @@
 Edge                CLOCK = { {"CLOCK"} };
 
 // static init fields to match an 18.00 MHz clock
-// clock period is p_int + p_num/p_den ns.
 
-static int          p_int = 55;
-static int          p_num = 5;
-static int          p_den = 9;
-static int          excess = 0;
+double              Clock_MHz = 18.00;
+double              Clock_ns = 1000.0 / 18.00;  // TODO elminate this cruft
 
-static double       freq_mhz = 18.00;
-static double       period_ns = 1000.0 / 18.00;
+Tau Clock_nsec()
+{                       // TODO elminate this cruft
+    return UNIT * 1000 / Clock_MHz;     // TODO elminate this cruft
+}                       // TODO elminate this cruft
+
+double Clock_usec()
+{
+    return UNIT / Clock_MHz;
+}
 
 // Initialize the clock with period (num/den) ns.
 // Or think of this as (den*1000/num) MHz.
-void Clock_init(Tau period_num, Tau period_den)
+void Clock_init(double MHz)
 {
-    TAU = 0;
     UNIT = 0;
 
-    period_ns = period_num * 1.0 / period_den;
-    freq_mhz = period_den * 1000.0 / period_num;
+    Clock_MHz = MHz;
+    Clock_ns = 1000.0 / MHz;    // TODO elminate this cruft
 
-    CLOCK->name = format("CLOCK_%.0fMHz_%.0fNS", freq_mhz, period_ns);
+    CLOCK->name = format("CLOCK_%.0fMHz_%.0fNS", Clock_MHz, Clock_ns);
 
     Edge_init(CLOCK);
-    p_int = period_num / period_den;
-    p_num = period_num % period_den;
-    p_den = period_den;
-    excess = 0;
-}
-
-static void time_passes()
-{
-
-    // This function is timing critical.
-    // 
-
-    excess += p_num;
-    if (excess < p_den) {
-        TAU += p_int;
-    } else {
-        TAU += p_int + 1;
-        excess -= p_den;
-    }
-    UNIT++;
 }
 
 void Clock_cycle()
 {
     Edge_hi(CLOCK);
     Edge_lo(CLOCK);
-    time_passes();
+    UNIT++;
 }
 
-void Clock_cycle_to(Tau ns)
+void Clock_cycle_to(Tau uu)
 {
-    while (TAU < ns)
+    while (UNIT < uu)
         Clock_cycle();
 }
 
-void Clock_cycle_by(Tau ns)
+void Clock_cycle_by(Tau uu)
 {
-    Clock_cycle_to(TAU + ns);
+    Clock_cycle_to(UNIT + uu);
 }
