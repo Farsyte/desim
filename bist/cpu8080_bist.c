@@ -44,7 +44,6 @@ static const pEdge  SYNC = cpu->SYNC;
 static const pEdge  WAIT = cpu->WAIT;
 static const pEdge  HLDA = cpu->HLDA;
 static const pEdge  RETM1 = cpu->RETM1;
-static const pEdge  INT_RST = cpu->INT_RST;
 
 static Traced       tPHI1 = { {"PHI1"} };
 static Traced       tPHI2 = { {"PHI2"} };
@@ -73,7 +72,6 @@ static Traced       tHLDA = { {"HLDA"} };
 
 static Traced       tWAIT = { {"WAIT"} };
 static Traced       tRETM1 = { {"RETM1"} };
-static Traced       tINT_RST = { {"INT_RST"} };
 
 static pTraced      trace_list[] = {
     tPHI1,
@@ -97,8 +95,8 @@ static pTraced      trace_list[] = {
     tHLDA,
     tWAIT,
     tRETM1,
-    tINT_RST,
 };
+
 static size_t       trace_count =
   sizeof trace_list / sizeof trace_list[0];
 
@@ -256,7 +254,7 @@ void Cpu8080_bench()
     Tau                 wall_t0_ns, wall_dt_ns;
     double              sim_t0_us = 0;
     double              sim_dt_us = 0;
-    Tau                 mint = 25000000;
+    Tau                 mint = 250000000;
 
     Tau                 sync_count = 0;
     EDGE_RISE(cpu->SYNC, sync_counter, &sync_count);
@@ -351,7 +349,6 @@ void Cpu8080_bist()
     Traced_init(tHLDA, HLDA, 0);
     Traced_init(tWAIT, WAIT, 0);
     Traced_init(tRETM1, RETM1, 0);
-    Traced_init(tINT_RST, INT_RST, 0);
 
     Traced_active_boring(tRDYIN);
     Traced_active_boring(tREADY);

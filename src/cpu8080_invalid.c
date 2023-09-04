@@ -4,10 +4,13 @@
 
 #include "8080_instructions.h"
 
-static void s_invalid(Cpu8080 cpu, Cpu8080_phase ph)
+static void         s_invalid_loud(Cpu8080 cpu, Cpu8080_phase ph);
+static void         s_invalid(Cpu8080 cpu, Cpu8080_phase ph);
+
+void Cpu8080_init_invalid(Cpu8080 cpu)
 {
-    (void)cpu;
-    (void)ph;
+    for (unsigned inst = 0; inst < 0400; ++inst)
+        cpu->M1T4[inst] = s_invalid_loud;
 }
 
 static void s_invalid_loud(Cpu8080 cpu, Cpu8080_phase ph)
@@ -22,9 +25,8 @@ static void s_invalid_loud(Cpu8080 cpu, Cpu8080_phase ph)
     cpu->state(cpu, ph);
 }
 
-void Cpu8080_init_invalid(Cpu8080 cpu)
+static void s_invalid(Cpu8080 cpu, Cpu8080_phase ph)
 {
-    for (unsigned inst = 0; inst <= 0377; ++inst)
-        cpu->M1T4[inst] = s_invalid_loud;
-
+    (void)cpu;
+    (void)ph;
 }

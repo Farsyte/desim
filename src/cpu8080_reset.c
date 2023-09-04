@@ -8,15 +8,8 @@
 static void s_reset_done(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
-      default:
-          break;
-      case PHI1_RISE:
-          Edge_lo(cpu->INT_RST);
-          Edge_hi(cpu->RETM1);
-          break;
       case PHI2_RISE:
-          break;
-      case PHI2_FALL:
+          Edge_hi(cpu->RETM1);
           break;
     }
 }
@@ -35,17 +28,8 @@ static void reset_fall(Cpu8080 cpu)
 
 static void s_reset_hold(Cpu8080 cpu, Cpu8080_phase ph)
 {
-    switch (ph) {
-      default:
-          break;
-      case PHI1_RISE:
-          Edge_hi(cpu->INT_RST);
-          break;
-      case PHI2_RISE:
-          break;
-      case PHI2_FALL:
-          break;
-    }
+    (void)cpu;
+    (void)ph;
 }
 
 static void reset_rise(Cpu8080 cpu)

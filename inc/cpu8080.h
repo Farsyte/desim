@@ -5,9 +5,25 @@
 #include "edge.h"
 #include "gen8224.h"
 
-typedef enum {
-    UNPHASED, PHI1_RISE, PHI2_RISE, PHI2_FALL
-} Cpu8080_phase;
+// Could use an enum for the phase, but then
+// all the switch statements would have to
+// have cases for all the phases. This is
+// normally a useful warning -- adding an
+// entry to an enum often means adding code
+// for it to all switches -- but in this case,
+// if we add more phases, then we want existing
+// switches to just do nothing.
+
+typedef int         Cpu8080_phase;
+#define	PHI1_RISE	1
+#define	PHI2_RISE	3
+#define	PHI2_FALL	7
+
+// DESim does not (yet?) track whether a bus
+// is floating or not. To make it easy to find
+// places where a module "floats" a bus, provide
+// a macro for a value to store.
+#define BUS_FLOAT	0
 
 struct sCpu8080;
 
@@ -46,8 +62,6 @@ typedef struct sCpu8080 {
     Cpu8080_state       M1T4[0400];
 
     Cpu8080_state       fetch;
-
-    Edge                INT_RST;
 
 }                  *pCpu8080, Cpu8080[1];
 
