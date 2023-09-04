@@ -7,6 +7,7 @@
 #include "cpu8080_fetch.h"
 #include "cpu8080_hlt.h"
 #include "cpu8080_int.h"
+#include "cpu8080_intack.h"
 #include "cpu8080_invalid.h"
 #include "cpu8080_m1t1.h"
 #include "cpu8080_nop.h"
@@ -80,6 +81,7 @@ static void Cpu8080_init_decode(Cpu8080 cpu)
 {
     Cpu8080_init_invalid(cpu);
     Cpu8080_init_fetch(cpu);
+    Cpu8080_init_intack(cpu);
     Cpu8080_init_nop(cpu);
     Cpu8080_init_hlt(cpu);
     Cpu8080_init_int(cpu);

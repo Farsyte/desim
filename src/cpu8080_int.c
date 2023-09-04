@@ -1,9 +1,10 @@
-#include "cpu8080_hlt.h"
+#include "cpu8080_int.h"
 
 #include <assert.h>
 
 #include "8080_instructions.h"
 #include "8080_status.h"
+#include "cpu8080_hlt.h"
 #include "stub.h"
 #include "tau.h"
 

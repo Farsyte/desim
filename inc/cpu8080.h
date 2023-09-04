@@ -62,6 +62,7 @@ typedef struct sCpu8080 {
     Cpu8080_state       M1T4[0400];
 
     Cpu8080_state       fetch;
+    Cpu8080_state       intack;
 
 }                  *pCpu8080, Cpu8080[1];
 

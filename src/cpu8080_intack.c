@@ -1,49 +1,52 @@
-#include "cpu8080_fetch.h"
+#include "cpu8080_intack.h"
+
+#include <stdlib.h>
 
 #include "8080_status.h"
+#include "stub.h"
 
-static void         s_fetch_T1(Cpu8080 cpu, Cpu8080_phase ph);
-static void         s_fetch_T2_incpc(Cpu8080 cpu, Cpu8080_phase ph);
-static void         s_fetch_TW_wait(Cpu8080 cpu, Cpu8080_phase ph);
-static void         s_fetch_T3_tmpir(Cpu8080 cpu, Cpu8080_phase ph);
+static void         s_intack_T1(Cpu8080 cpu, Cpu8080_phase ph);
+static void         s_intack_T2(Cpu8080 cpu, Cpu8080_phase ph);
+static void         s_intack_TW(Cpu8080 cpu, Cpu8080_phase ph);
+static void         s_intack_T3(Cpu8080 cpu, Cpu8080_phase ph);
 
-void Cpu8080_init_fetch(Cpu8080 cpu)
+void Cpu8080_init_intack(Cpu8080 cpu)
 {
-    cpu->fetch = s_fetch_T1;
+    cpu->intack = s_intack_T1;
 }
 
-static void s_fetch_T1(Cpu8080 cpu, Cpu8080_phase ph)
+static void s_intack_T1(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
       case PHI2_RISE:
-          cpu->state_next = s_fetch_T2_incpc;
+          cpu->state_next = s_intack_T2;
           *cpu->Addr = *cpu->PC;
-          *cpu->Data = STATUS_FETCH;
+          *cpu->Data = STATUS_INTACK;
           Edge_hi(cpu->SYNC);
           break;
     }
 }
 
-static void s_fetch_T2_incpc(Cpu8080 cpu, Cpu8080_phase ph)
+static void s_intack_T2(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
 
       case PHI2_RISE:
+          Edge_lo(cpu->INTE);
           Edge_lo(cpu->SYNC);
-          *cpu->PC = *cpu->PC + 1;
           *cpu->Data = BUS_FLOAT;
           Edge_hi(cpu->DBIN);
           break;
 
       case PHI2_FALL:
           cpu->state_next = Edge_get(cpu->READY)
-            ? s_fetch_T3_tmpir : s_fetch_TW_wait;
+            ? s_intack_T3 : s_intack_TW;
           break;
 
     }
 }
 
-static void s_fetch_TW_wait(Cpu8080 cpu, Cpu8080_phase ph)
+static void s_intack_TW(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
 
@@ -53,12 +56,12 @@ static void s_fetch_TW_wait(Cpu8080 cpu, Cpu8080_phase ph)
 
       case PHI2_FALL:
           if (Edge_get(cpu->READY))
-              cpu->state_next = s_fetch_T3_tmpir;
+              cpu->state_next = s_intack_T3;
           break;
     }
 }
 
-static void s_fetch_T3_tmpir(Cpu8080 cpu, Cpu8080_phase ph)
+static void s_intack_T3(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
 
