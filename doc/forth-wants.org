@@ -1,0 +1,150 @@
+EXPECTATIONS FROM CP/M:
+
+0000 JMP BIOS+3
+
+CP/M service offsets from BIOS+3:
+| 0003 | KCSTAT | CONSOLE STATUS                                                                                                  |
+| 0006 | KCIN   | CONSOLE INPUT                                                                                                   |
+| 0009 | KCOUT  | CONSOLE OUTPUT                                                                                                  |
+| 000C | KPOUT  | PRINTER OUTPUT                                                                                                  |
+|      |        |                                                                                                                 |
+| 0018 | SETDSK | (C) -> which disk 0=A 1=B etc                                                                                   |
+| 001B | SETTRK | (BC) -> which track 0=first                                                                                     |
+| 001E | SETSEC | (BC) -> which sector 0=first                                                                                    |
+| 0021 | SETDMA | (BC) -> memory address                                                                                          |
+| 0024 | RDSEC  | read sector returns A=0 ok A=0xFF media changed                                                                 |
+| 0027 | RITSEC | write sector C=0 can defer C=1 immediate C=2 can defer no preread needed; A=0 ok A=1 error A=0xFF media changed |
+
+| 0080 | BPS   | EQU     128 | BYTES PER SECTOR |
+| 0002 | MXDRV | EQU     2   | MAX # DRIVES     |
+
+DOUBLE DENSITY 8" FLOPPY CAPACITIES              
+| 0034 | SPT2   | EQU     52         | SECTORS PER TRACK |
+| 004D | TRKS2  | EQU     77         | NUMBER OF TRACKS  |
+| 0FA4 | SPDRV2 | EQU     SPT2*TRKS2 | SECTORS/DRIVE     |
+
+SINGLE DENSITY 8" FLOPPY CAPACITIES              
+| 001A | SPT1   | EQU     26         | SECTORS/TRACK |
+| 004D | TRKS1  | EQU     77         | # TRACKS      |
+| 07D2 | SPDRV1 | EQU     SPT1*TRKS1 | SECTORS/DRIVE |
+
+
+|------+--------+------------------------------|
+| 0100 | MCOLD  | JMP TO COLD START            |
+| 0104 | MWARM  | JMP TO WARM START            |
+| 0108 | MA2    | COLD START PARAMETERS        |
+| 0126 | MUP    | USER VARIABLES' BASE 'REG'   |
+| 0128 | MRP    | RETURN STACK 'REGISTER'      |
+| 012A | MBIP   | DEBUG SUPPORT                |
+| 0143 | MDPUSH | ADDRESS INTERPRETER          |
+| 0144 | MHPUSH |                              |
+| 0145 | MNEXT  |                              |
+|      |        |                              |
+| 0150 | MDP0   | START FORTH DICTIONARY       |
+| 1385 | MDIO   | CP/M DISK INTERFACE          |
+| 170E | MCIO   | CONSOLE & PRINTER INTERFACE  |
+| 1B75 | MIDP   | END INITIAL FORTH DICTIONARY |
+|      |        | … = COLD (DP) VALUE          |
+|      |        | … = COLD (FENCE) VALUE       |
+|      |        | ↓ NEW DEFINITIONS            |
+|      |        |                              |
+|      |        | ↑ DATA STACK                 |
+| 3B00 | MIS0   | … = COLD (SP) VALUE = (S0)   |
+|      |        | … = (TIB)                    |
+|      |        | ↓ TERMINAL INPUT BUFFER      |
+|      |        |                              |
+|      |        | ↑ RETURN STACK               |
+| 3BA0 | MIR0   | START USER VARIABLES         |
+|      |        | … = COLD (RP) VALUE = (R0)   |
+|      |        | … = (UP)                     |
+|      |        | END USER VARIABLES           |
+| 3BE0 | MFIRST | START DISK BUFFERS           |
+|      |        | … = FIRST                    |
+| 3FFF | MEND   | END DISK BUFFERS             |
+| 4000 | MLIMIT | LAST MEMORY LOC USED + 1     |
+|      |        | … = LIMIT                    |
+
+FORTH lives in ram starting at 0x0100
+
+|------+--------+-------------------------+---------------------------------|
+|      |        |                         | RELEASE & VERSION NUMBERS       |
+|      |        |                         |                                 |
+| 0001 | FIGREL | EQU     1               | FIG RELEASE #                   |
+| 0001 | FIGREV | EQU     1               | FIG REVISION #                  |
+| 0000 | USRVER | EQU     0               | USER VERSION #                  |
+|------+--------+-------------------------+---------------------------------|
+|      |        |                         | ASCII CHARACTERS USED           |
+|      |        |                         |                                 |
+| 0020 | ABL    | EQU     20H             | SPACE                           |
+| 000D | ACR    | EQU     0DH             | CARRIAGE RETURN                 |
+| 002E | ADOT   | EQU     02EH            | PERIOD                          |
+| 0007 | BELL   | EQU     07H             | (^G)                            |
+| 007F | BSIN   | EQU     7FH             | INPUT BACKSPACE CHR = RUBOUT    |
+| 0008 | BSOUT  | EQU     08H             | OUTPUT BACKSPACE (^H)           |
+| 0010 | DLE    | EQU     10H             | (^P)                            |
+| 000A | LF     | EQU     0AH             | LINE FEED                       |
+| 000C | FF     | EQU     0CH             | FORM FEED (^L)                  |
+|------+--------+-------------------------+---------------------------------|
+|      |        |                         | MEMORY ALLOCATION               |
+|      |        |                         |                                 |
+| 4000 | EM     | EQU     4000H           | TOP OF MEMORY + 1 = LIMIT       |
+| 0001 | NSCR   | EQU     1               | NUMBER OF 1024 BYTE SCREENS     |
+| 0080 | KBBUF  | EQU     128             | DATA BYTES PER DISK BUFFER      |
+| 0040 | US     | EQU     40H             | USER VARIABLES SPACE            |
+| 00A0 | RTS    | EQU     0A0H            | RETURN STACK & TERM BUFF SPACE  |
+|      |        |                         |                                 |
+| 0084 | CO     | EQU     KBBUF+4         | DISK BUFFER + 2 HEADER + 2 TAIL |
+| 0008 | NBUF   | EQU     NSCR*400H/KBBUF | NUMBER OF BUFFERS               |
+| 3BE0 | BUF1   | EQU     EM-(CO*NBUF)    | ADDR FIRST DISK BUFFER          |
+| 3BA0 | INITR0 | EQU     BUF1-US         | (R0)                            |
+| 3B00 | INITS0 | EQU     INITR0-RTS      | (S0)                            |
+|      |        |                         |                                 |
+
+* more info on cp/m
+
+
+https://www.seasip.info/Cpm/bios.html
+
+DPH: see https://www.seasip.info/Cpm/dph.html
+
+The BIOS begins with the following jumps to service routines:
+
+|     | svc     | off | title                                |                                                                 |                |
+|-----+---------+-----+--------------------------------------+-----------------------------------------------------------------+----------------|
+| JMP | BOOT    |  -3 | Cold start routine                   | do not call                                                     |                |
+| JMP | WBOOT   |   0 | Warm boot - reload command processor | reload command processor                                        |                |
+| JMP | CONST   |   3 | Console status                       | A=0xFF if char ready, else 0                                    |                |
+| JMP | CONIN   |   6 | Console input                        | return next key in A                                            |                |
+| JMP | CONOUT  |   9 | Console output                       | write char from C to screen                                     |                |
+| JMP | LIST    |  12 | Printer output                       | write char from C to printer                                    |                |
+| JMP | PUNCH   |  15 | Paper tape punch output              | write char from C to aux                                        |                |
+| JMP | READER  |  18 | Paper tape reader input              | read char from aux to A                                         |                |
+| JMP | HOME    |  21 | Move disc head to track 0            | affects current drive                                           |                |
+| JMP | SELDSK  |  24 | Select disc drive                    | 0=A: 1=B: etc; E=0 "new disk" E=0xFF "revisiting"               | HL←DPH         |
+| JMP | SETTRK  |  27 | Set track number                     | BC=track number, 0 is first track                               |                |
+| JMP | SETSEC  |  30 | Set sector number                    | BC=sector number (128bytes, until CP/M 3)                       |                |
+| JMP | SETDMA  |  33 | Set DMA address                      | BC=memory address                                               |                |
+| JMP | READ    |  36 | Read a sector                        | read. returns A=0 for ok, A=0xFF for media changed              |                |
+| JMP | WRITE   |  39 | Write a sector                       | write. C=0 can defer, C=1 immediate, 2=defer no pre-read needed |                |
+|-----+---------+-----+--------------------------------------+-----------------------------------------------------------------+----------------|
+|     |         |     | STARTING IN CP/M 2                   |                                                                 |                |
+| JMP | LISTST  |  42 | Status of list device                | printer ready? A=0 unready A=0xFF ready                         |                |
+| JMP | SECTRAN |  45 | Sector translation for skewing       | BC=logical sector 0..N, DE=translation table                    | HL←phys sector |
+|-----+---------+-----+--------------------------------------+-----------------------------------------------------------------+----------------|
+|     |         |     | STARTING IN CP/M 3                   |                                                                 |                |
+| JMP | CONOST  |  48 | Status of console output             |                                                                 |                |
+| JMP | AUXIST  |  51 | Status of auxiliary input            |                                                                 |                |
+| JMP | AUXOST  |  54 | Status of auxiliary output           |                                                                 |                |
+| JMP | DEVTBL  |  57 | Address of devices table             |                                                                 |                |
+| JMP | DEVINI  |  60 | Initialise a device                  |                                                                 |                |
+| JMP | DRVTBL  |  63 | Address of discs table               |                                                                 |                |
+| JMP | MULTIO  |  66 | Read/write multiple sectors          |                                                                 |                |
+| JMP | FLUSH   |  69 | Flush host buffers                   |                                                                 |                |
+| JMP | MOVE    |  72 | Move a block of memory               |                                                                 |                |
+| JMP | TIME    |  75 | Real time clock                      |                                                                 |                |
+| JMP | SELMEM  |  78 | Select memory bank                   |                                                                 |                |
+| JMP | SETBNK  |  81 | Select bank for DMA operation        |                                                                 |                |
+| JMP | XMOVE   |  84 | Preload banks for MOVE               |                                                                 |                |
+| JMP | USERF   |  87 | System-depedent functions            |                                                                 |                |
+| JMP | RESERV1 |  90 | Reserved                             |                                                                 |                |
+| JMP | RESERV2 |  93 | Reserved                             |                                                                 |                |

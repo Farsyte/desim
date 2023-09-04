@@ -5,6 +5,7 @@
 #include "clock.h"
 #include "cpu8080.h"
 #include "ctl8228.h"
+#include "dec8080.h"
 #include "edge.h"
 #include "gen8224.h"
 #include "rtc.h"
@@ -22,6 +23,7 @@ static void desim_bist()
     Clock_bist();
     Gen8224_bist();
     Ctl8228_bist();
+    Dec8080_bist();
     Cpu8080_bist();
     PRINT_END();
 }
@@ -34,6 +36,7 @@ static void desim_bench()
     Clock_bench();
     Gen8224_bench();
     // Ctl8228_bench();
+    // Dec8080_bench();
     Cpu8080_bench();
     PRINT_END();
 }

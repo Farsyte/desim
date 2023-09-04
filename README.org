@@ -187,3 +187,37 @@ the behavior of the 8080 Clock Generator discrete logic provided in
 Figure 3-3 in a number of details. Side-by-side study of Fig 3-3 and
 the 8224 data sheet is enlightening.
 
+** Ctl8228: System Controller
+
+This simulates the behavior of the Intel 8228 System Controller and
+Bus Driver for 808A CPU as described in section 5 of the 8080
+Microcomputer Systems Manual published in September 1975.
+
+This simulation differs from the data sheet in how it interfaces to
+the Data bus. The simulation system does not require bus drivers, so
+there is no division between CPU Data Bus and System Data Bus.
+
+** Dec8080: Address Decode logic
+
+This module provides address space decoding logic.
+
+The decoder can accept connections from ROM and RAM modules
+taking ownership of specified pages of memory, where the 64 KiB
+address space is divided into 64 pages of 1 KiB each.
+
+** Cpu8080: Single Chip 8-Bit Microprocessor
+
+This simulates the behavior of the Silicon Gate MOS 8080A Single Chip
+8-Bit N-Channel Microprocessor as described in section 5 of the 8080
+Microcomputer Systems Manual published in September 1975.
+
+The built-in self test for Cpu8080 makes use of the modules above to
+construct a small 8080 based system for testing.
+
+This module is currently under development.
+
+The simulation will not attempt to match sufficiently "internal"
+aspects of the processor; for example, we will not simulate a number
+of internal latches and buffers. The scope of the simulation is to
+allow execution of historical 8080 software, along with the ability to
+extract waveform diagrams of signals external to the chips.
