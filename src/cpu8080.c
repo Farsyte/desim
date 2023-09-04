@@ -19,6 +19,8 @@ unsigned            Cpu8080_debug = 2;
 
 static void phi1_rise(Cpu8080 cpu)
 {
+    if (Edge_get(cpu->RETM1))
+        cpu->state_next = cpu->M1T1;
     cpu->state = cpu->state_next;
     cpu->state(cpu, PHI1_RISE);
 }
@@ -106,8 +108,11 @@ void Cpu8080_init(Cpu8080 cpu)
     cpu->HLDA->name = format("%s.HLDA", cpu->name);
     Edge_init(cpu->HLDA);
 
-    cpu->INTE_FF->name = format("%s.INTE_FF", cpu->name);
-    Edge_init(cpu->INTE_FF);
+    cpu->RETM1->name = format("%s.RETM1", cpu->name);
+    Edge_init(cpu->RETM1);
+
+    cpu->INT_RST->name = format("%s.INT_RST", cpu->name);
+    Edge_init(cpu->INT_RST);
 
     Cpu8080_init_decode(cpu);
     Cpu8080_init_reset(cpu);

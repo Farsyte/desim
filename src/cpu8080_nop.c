@@ -4,8 +4,16 @@
 
 static void s_nop(Cpu8080 cpu, Cpu8080_phase ph)
 {
-    if (ph == PHI2_FALL) {
-        cpu->state_next = cpu->M1T1;
+    switch (ph) {
+      default:
+          break;
+      case PHI1_RISE:
+          Edge_hi(cpu->RETM1);
+          break;
+      case PHI2_RISE:
+          break;
+      case PHI2_FALL:
+          break;
     }
 }
 

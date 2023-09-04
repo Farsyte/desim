@@ -13,11 +13,12 @@ static void s_ei(Cpu8080 cpu, Cpu8080_phase ph)
       default:
           break;
       case PHI1_RISE:
+          Edge_hi(cpu->RETM1);
           break;
       case PHI2_RISE:
+          Edge_hi(cpu->INTE);
           break;
       case PHI2_FALL:
-          cpu->state_next = cpu->M1T1;
           break;
     }
 }
@@ -28,11 +29,12 @@ static void s_di(Cpu8080 cpu, Cpu8080_phase ph)
       default:
           break;
       case PHI1_RISE:
+          Edge_hi(cpu->RETM1);
           break;
       case PHI2_RISE:
+          Edge_lo(cpu->INTE);
           break;
       case PHI2_FALL:
-          cpu->state_next = cpu->M1T1;
           break;
     }
 }
