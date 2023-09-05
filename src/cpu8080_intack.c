@@ -19,9 +19,10 @@ static void s_intack_T1(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
       case PHI2_RISE:
+          cpu->status = STATUS_INTACK;
           cpu->state_next = s_intack_T2;
           *cpu->Addr = *cpu->PC;
-          *cpu->Data = STATUS_INTACK;
+          *cpu->Data = cpu->status;
           Edge_hi(cpu->SYNC);
           break;
     }
@@ -74,5 +75,14 @@ static void s_intack_T3(Cpu8080 cpu, Cpu8080_phase ph)
           cpu->state_next = cpu->M1T4[*cpu->IR];
           Edge_lo(cpu->DBIN);
           break;
+
+          // For now, behavior is only defined for
+          // devices presenting RST instructions.
+          //
+          // TODO work out how to deal with CALL.
+          //
+          // Bear in mind that the act of accepting
+          // an interrupt disables interrupts.
+
     }
 }

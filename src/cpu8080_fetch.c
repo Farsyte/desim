@@ -16,9 +16,10 @@ static void s_fetch_T1(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
       case PHI2_RISE:
+          cpu->status = STATUS_FETCH;
           cpu->state_next = s_fetch_T2_incpc;
           *cpu->Addr = *cpu->PC;
-          *cpu->Data = STATUS_FETCH;
+          *cpu->Data = cpu->status;
           Edge_hi(cpu->SYNC);
           break;
     }

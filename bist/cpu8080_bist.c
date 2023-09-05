@@ -433,6 +433,142 @@ void Cpu8080_bist()
     }
     Clock_cycle_by(9 * 4 - 3);
 
+    // Execute an EI instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_EI;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute a HLT instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_HLT;
+
+    while (!Edge_get(cpu->WAIT))
+        Clock_cycle();
+
+    // brief delay before using interrupt
+    Clock_cycle_by(9 * 5 - 1);
+
+    // Trigger an interrupt.
+    Edge_hi(INT);
+
+    // Device will supply an EI instruction.
+
+    while (Edge_get(ctl->INTA_))
+        Clock_cycle();
+    // NOTE: leave INT active here ...
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    *cpu->Data = I8080_EI;
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // While we just had an EI, and INT is set,
+    // we should run one instruction before
+    // taking the next INT -- this mirrors the
+    // normal "EI;RET" return-from-interrupt
+    // in that the interrupt is not taken until
+    // after the return.
+
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Since INT and INTE were active at the
+    // start of that NOP instruction, DESim
+    // should now run another INT cycle. Hand
+    // out a NOP to execute. This will leave
+    // us with interrupts disabled but running
+    // the interrupted code.
+
+    while (Edge_get(ctl->INTA_))
+        Clock_cycle();
+    // NOTE: leave INT active here ...
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // INT test is over.
+    // release the interrupt request,
+    // then run an EI.
+
+    // Trigger an interrupt.
+    Edge_lo(INT);
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_EI;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // fill out the last page.
+    Clock_cycle_by(9 * 8 - 3);
+
+
     printf("\n");
     printf("Signal Traces:\n");
     for (size_t i = 0; i < trace_count; ++i)

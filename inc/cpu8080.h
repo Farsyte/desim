@@ -53,12 +53,16 @@ typedef struct sCpu8080 {
 
     Reg8                IR;
 
+    Byte                status;
+
     Cpu8080_state       state;
     Cpu8080_state       state_next;
 
     Edge                RETM1;
 
-    Cpu8080_state       M1T1;
+    Cpu8080_state       M1T1_from_int;
+    Cpu8080_state       M1T1_at_RETM1_rise;
+
     Cpu8080_state       M1T4[0400];
 
     Cpu8080_state       fetch;

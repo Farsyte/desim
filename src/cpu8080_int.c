@@ -33,6 +33,11 @@ static void s_ei(Cpu8080 cpu, Cpu8080_phase ph)
       case PHI2_RISE:
           Edge_hi(cpu->RETM1);
           Edge_hi(cpu->INTE);
+
+          // TODO delay interrupt enable by one t-state
+          // so that if we use EI;RET to end an interrupt handler,
+          // we do not take an interrupt before RET is complete.
+
           break;
     }
 }

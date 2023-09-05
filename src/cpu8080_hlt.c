@@ -30,9 +30,10 @@ static void s_hlt_M2T1(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
       case PHI2_RISE:
+          cpu->status = STATUS_HALTACK;
           cpu->state_next = s_hlt_M2T2;
           *cpu->Addr = *cpu->PC;
-          *cpu->Data = STATUS_HALTACK;
+          *cpu->Data = cpu->status;
           Edge_hi(cpu->SYNC);
           break;
     }
