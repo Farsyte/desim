@@ -16,6 +16,12 @@ typedef struct {
     // them until DBIN. This sim synchronizes their falling edge with
     // /STSTB↑ to avoid the need for a FIFO or (worse) a priority
     // queue smack in the middle of timing critical code in Clock.
+    //
+    // CHANGE FROM THE 8228: THIS SIMULATION TAKES NO SPECIAL ACTION
+    // TO ARRANGE TO ALLOW USING 'CALL' INSTRUCTIONS DURING INTERRUPT
+    // ACKNOWLEDGE CYCLES. The hardware apparently does this, but it
+    // is not clear how this interacts with the CPU and prevents PC
+    // from being incremented as the 8080 accepts the call operands.
 
     // Start with the edges we do not own, to make it easier to
     // hook them up in a static initializer.

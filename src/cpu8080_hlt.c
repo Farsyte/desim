@@ -7,39 +7,21 @@
 #include "stub.h"
 #include "tau.h"
 
-static void s_hlt_M2TW(Cpu8080 cpu, Cpu8080_phase ph)
-{
+static void         s_hlt_M1T4(Cpu8080 cpu, Cpu8080_phase ph);
+static void         s_hlt_M2T1(Cpu8080 cpu, Cpu8080_phase ph);
+static void         s_hlt_M2T2(Cpu8080 cpu, Cpu8080_phase ph);
+static void         s_hlt_M2TW(Cpu8080 cpu, Cpu8080_phase ph);
 
-    switch (ph) {
-      default:
-          break;
-      case PHI1_RISE:
-          Edge_hi(cpu->WAIT);
-          // TODO respond to cpu->INT
-          break;
-      case PHI2_RISE:
-          // TODO respond to cpu->HOLD
-          break;
-      case PHI2_FALL:
-          break;
-    }
-    // TODO when we leave M2TW, release WAIT on rising PHI1 of the next state.
+void Cpu8080_init_hlt(Cpu8080 cpu)
+{
+    cpu->M1T4[I8080_HLT] = s_hlt_M1T4;
 }
 
-static void s_hlt_M2T2(Cpu8080 cpu, Cpu8080_phase ph)
+static void s_hlt_M1T4(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
-      default:
-          break;
-      case PHI1_RISE:
-          break;
-      case PHI2_RISE:
-          Edge_lo(cpu->SYNC);
-          // 8080 floats Addr
-          // 8080 floats Data
-          break;
       case PHI2_FALL:
-          cpu->state_next = s_hlt_M2TW;
+          cpu->state_next = s_hlt_M2T1;
           break;
     }
 }
@@ -47,37 +29,41 @@ static void s_hlt_M2T2(Cpu8080 cpu, Cpu8080_phase ph)
 static void s_hlt_M2T1(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
-      default:
-          break;
-      case PHI1_RISE:
-          break;
       case PHI2_RISE:
+          cpu->status = STATUS_HALTACK;
+          cpu->state_next = s_hlt_M2T2;
           *cpu->Addr = *cpu->PC;
-          *cpu->Data = STATUS_HALTACK;
+          *cpu->Data = cpu->status;
           Edge_hi(cpu->SYNC);
           break;
-      case PHI2_FALL:
-          cpu->state_next = s_hlt_M2T2;
-          break;
     }
 }
 
-static void s_hlt_M1T4(Cpu8080 cpu, Cpu8080_phase ph)
+static void s_hlt_M2T2(Cpu8080 cpu, Cpu8080_phase ph)
 {
     switch (ph) {
-      default:
-          break;
-      case PHI1_RISE:
-          break;
       case PHI2_RISE:
-          break;
-      case PHI2_FALL:
-          cpu->state_next = s_hlt_M2T1;
+          cpu->state_next = s_hlt_M2TW;
+          Edge_lo(cpu->SYNC);
+          *cpu->Addr = BUS_FLOAT;
+          *cpu->Data = BUS_FLOAT;
           break;
     }
 }
 
-void Cpu8080_init_hlt(Cpu8080 cpu)
+static void s_hlt_M2TW(Cpu8080 cpu, Cpu8080_phase ph)
 {
-    cpu->M1T4[I8080_HLT] = s_hlt_M1T4;
+    switch (ph) {
+
+      case PHI1_RISE:
+          Edge_hi(cpu->WAIT);
+          break;
+
+      case PHI2_RISE:
+          if (Edge_get(cpu->INT) && Edge_get(cpu->INTE)) {
+              Edge_hi(cpu->RETM1);
+              Edge_lo(cpu->WAIT);
+          }
+          break;
+    }
 }

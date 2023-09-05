@@ -7,6 +7,7 @@
 #include "cpu8080_fetch.h"
 #include "cpu8080_hlt.h"
 #include "cpu8080_int.h"
+#include "cpu8080_intack.h"
 #include "cpu8080_invalid.h"
 #include "cpu8080_m1t1.h"
 #include "cpu8080_nop.h"
@@ -17,9 +18,29 @@
 
 unsigned            Cpu8080_debug = 2;
 
+static void retm1_rise(Cpu8080 cpu)
+{
+    // On the rising edge of RETM1, sample M1T1_from_int to determine
+    // if our next M1T1 is an int-ack state.
+
+    cpu->M1T1_at_RETM1_rise = cpu->M1T1_from_int;
+}
+
 static void phi1_rise(Cpu8080 cpu)
 {
-    cpu->state = cpu->state_next;
+    if (Edge_get(cpu->RETM1)) {
+
+        // If we are at the start of a T-state
+        // with RETM1 already set, then switch
+        // to the M1T1 handler that was determined
+        // at the very start of the last T-state.
+
+        cpu->state = cpu->M1T1_at_RETM1_rise;
+        Edge_lo(cpu->RETM1);
+    } else {
+        cpu->state = cpu->state_next;
+    }
+
     cpu->state(cpu, PHI1_RISE);
 }
 
@@ -68,12 +89,15 @@ void Cpu8080_linked(Cpu8080 cpu)
     EDGE_RISE(cpu->PHI1, phi1_rise, cpu);
     EDGE_RISE(cpu->PHI2, phi2_rise, cpu);
     EDGE_FALL(cpu->PHI2, phi2_fall, cpu);
+
+    EDGE_RISE(cpu->RETM1, retm1_rise, cpu);
 }
 
 static void Cpu8080_init_decode(Cpu8080 cpu)
 {
     Cpu8080_init_invalid(cpu);
     Cpu8080_init_fetch(cpu);
+    Cpu8080_init_intack(cpu);
     Cpu8080_init_nop(cpu);
     Cpu8080_init_hlt(cpu);
     Cpu8080_init_int(cpu);
@@ -106,8 +130,8 @@ void Cpu8080_init(Cpu8080 cpu)
     cpu->HLDA->name = format("%s.HLDA", cpu->name);
     Edge_init(cpu->HLDA);
 
-    cpu->INTE_FF->name = format("%s.INTE_FF", cpu->name);
-    Edge_init(cpu->INTE_FF);
+    cpu->RETM1->name = format("%s.RETM1", cpu->name);
+    Edge_init(cpu->RETM1);
 
     Cpu8080_init_decode(cpu);
     Cpu8080_init_reset(cpu);

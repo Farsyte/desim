@@ -5,9 +5,25 @@
 #include "edge.h"
 #include "gen8224.h"
 
-typedef enum {
-    UNPHASED, PHI1_RISE, PHI2_RISE, PHI2_FALL
-} Cpu8080_phase;
+// Could use an enum for the phase, but then
+// all the switch statements would have to
+// have cases for all the phases. This is
+// normally a useful warning -- adding an
+// entry to an enum often means adding code
+// for it to all switches -- but in this case,
+// if we add more phases, then we want existing
+// switches to just do nothing.
+
+typedef int         Cpu8080_phase;
+#define	PHI1_RISE	1
+#define	PHI2_RISE	3
+#define	PHI2_FALL	7
+
+// DESim does not (yet?) track whether a bus
+// is floating or not. To make it easy to find
+// places where a module "floats" a bus, provide
+// a macro for a value to store.
+#define BUS_FLOAT	0
 
 struct sCpu8080;
 
@@ -15,10 +31,6 @@ typedef void        (*Cpu8080_state)(struct sCpu8080 *, Cpu8080_phase);
 
 typedef struct sCpu8080 {
     const char         *name;
-
-    // Changes from the 8080:
-
-    // External Hardware Connections
 
     pEdge               PHI1;
     pEdge               PHI2;
@@ -37,46 +49,25 @@ typedef struct sCpu8080 {
     Edge                WAIT;
     Edge                HLDA;
 
-    // Programmer Visible State
-    //
-    // TODO create as needed.
-    // Expected entries:
-    //    Reg8                B, C, D, E, H, L;
-    //    Reg8                A;
     Reg16               PC;
-    //    Reg16               SP;
-    //    Reg1                 Zero, Carry, Sign, Parity, AuxCarry;
 
-    // Architectural State that is not programmer visible
-    //
-    // TODO create as needed.
-    // Expected entries:
-    //    Reg8                W, Z;
-    //    Reg8                ACT, TMP;
     Reg8                IR;
 
-    // Internal State used by the simulation
-    //
-    // TODO create as needed.
-    // Expected entries:
-    //    pReg8               sss;
-    //    pReg8               ddd;
-    //    pReg8               rph;
-    //    pReg8               rpl;
+    Byte                status;
 
-    Edge INTE_FF;
-
-    // Publish state handlers for specific shared states.
-
-    Cpu8080_state       state_next;
     Cpu8080_state       state;
+    Cpu8080_state       state_next;
 
-    Cpu8080_state       M1T1;
+    Edge                RETM1;
+
+    Cpu8080_state       M1T1_from_int;
+    Cpu8080_state       M1T1_at_RETM1_rise;
+
     Cpu8080_state       M1T4[0400];
 
-    // control logic selects from these state functions
-    // when updating the M1T1 to use next.
     Cpu8080_state       fetch;
+    Cpu8080_state       intack;
+
 }                  *pCpu8080, Cpu8080[1];
 
 extern unsigned     Cpu8080_debug;

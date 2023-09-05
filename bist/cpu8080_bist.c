@@ -43,27 +43,35 @@ static const pEdge  WR_ = cpu->WR_;
 static const pEdge  SYNC = cpu->SYNC;
 static const pEdge  WAIT = cpu->WAIT;
 static const pEdge  HLDA = cpu->HLDA;
+static const pEdge  RETM1 = cpu->RETM1;
 
 static Traced       tPHI1 = { {"PHI1"} };
 static Traced       tPHI2 = { {"PHI2"} };
 static Traced       tSYNC = { {"SYNC"} };
 static Traced       tSTSTB_ = { {"STSTB_"} };
+
 static Traced       tRESIN_ = { {"RESIN_"} };
 static Traced       tRESET = { {"RESET"} };
+
 static Traced       tRDYIN = { {"RDYIN"} };
 static Traced       tREADY = { {"READY"} };
+
 static Traced       tDBIN = { {"DBIN"} };
 static Traced       tWR_ = { {"WR_"} };
 static Traced       tMEMR_ = { {"MEMR_"} };
 static Traced       tMEMW_ = { {"MEMW_"} };
 static Traced       tIOR_ = { {"IOR_"} };
 static Traced       tIOW_ = { {"IOW_"} };
+
 static Traced       tINTE = { {"INTE"} };
 static Traced       tINT = { {"INT"} };
 static Traced       tINTA_ = { {"INTA_"} };
+
 static Traced       tHOLD = { {"HOLD"} };
 static Traced       tHLDA = { {"HLDA"} };
+
 static Traced       tWAIT = { {"WAIT"} };
+static Traced       tRETM1 = { {"RETM1"} };
 
 static pTraced      trace_list[] = {
     tPHI1,
@@ -86,7 +94,9 @@ static pTraced      trace_list[] = {
     tHOLD,
     tHLDA,
     tWAIT,
+    tRETM1,
 };
+
 static size_t       trace_count =
   sizeof trace_list / sizeof trace_list[0];
 
@@ -185,7 +195,8 @@ static void fp_dbin_fall(void *arg)
     (void)arg;
     // MEMR_ and IOR_ are released on DBIN falling edge,
     // service happening before we get to this service.
-    printf("%8.3f: DBIN↓ 0%06o 0%03o\n", TU, *Addr, *Data);
+    printf("%8.3f: DBIN↓ 0%06o 0%03o %s\n",
+           TU, *Addr, *Data, disassemble(*Data));
     fp_verbose_adj();
 }
 
@@ -243,7 +254,7 @@ void Cpu8080_bench()
     Tau                 wall_t0_ns, wall_dt_ns;
     double              sim_t0_us = 0;
     double              sim_dt_us = 0;
-    Tau                 mint = 25000000;
+    Tau                 mint = 250000000;
 
     Tau                 sync_count = 0;
     EDGE_RISE(cpu->SYNC, sync_counter, &sync_count);
@@ -337,6 +348,7 @@ void Cpu8080_bist()
     Traced_init(tHOLD, HOLD, 0);
     Traced_init(tHLDA, HLDA, 0);
     Traced_init(tWAIT, WAIT, 0);
+    Traced_init(tRETM1, RETM1, 0);
 
     Traced_active_boring(tRDYIN);
     Traced_active_boring(tREADY);
@@ -355,33 +367,207 @@ void Cpu8080_bist()
 
     // Assert READY
     Edge_hi(RDYIN);
-    Clock_cycle_by(9 * 11);
+    Clock_cycle_by(9 * 7);
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute an EI instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_EI;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
 
     // Execute a HLT instruction
-    {
-        Tau                 end_unit = UNIT + 9 * 16;
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_HLT;
+
+    while (!Edge_get(cpu->WAIT))
+        Clock_cycle();
+
+    // brief delay before using reset
+    Clock_cycle_by(9 * 10 - 1);
+
+    // Exercise RESET from HALT state
+
+    Edge_lo(RESIN_);
+    Edge_lo(RDYIN);
+    Clock_cycle_by(9 * 6);
+    Edge_hi(RESIN_);
+    Clock_cycle_to(9 * 7);
+    Edge_hi(RDYIN);
+    Clock_cycle_to(9 * 11);
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute a DI instruction
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+
+    *cpu->Data = I8080_DI;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute several NOP instructions
+    for (int i = 0; i < 4; ++i) {
         while (!Edge_get(cpu->DBIN))
             Clock_cycle();
         while (Edge_get(ctl->MEMR_))
             Clock_cycle();
-        *cpu->Data = I8080_HLT;
-        Clock_cycle_to(end_unit);
+        *cpu->Data = I8080_NOP;
+        while (!Edge_get(cpu->SYNC))
+            Clock_cycle();
     }
+    Clock_cycle_by(9 * 4 - 3);
 
-    // Exercise RESET from HALT state
-    {
-        Tau                 release_reset = UNIT + 9 * 6;
-        Tau                 assert_ready = release_reset + 9 * 7;
-        Tau                 end_reset = assert_ready + 9 * 11;
+    // Execute an EI instruction
 
-        Edge_lo(RESIN_);
-        Edge_lo(RDYIN);
-        Clock_cycle_to(release_reset);
-        Edge_hi(RESIN_);
-        Clock_cycle_to(assert_ready);
-        Edge_hi(RDYIN);
-        Clock_cycle_to(end_reset);
-    }
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_EI;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute a HLT instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_HLT;
+
+    while (!Edge_get(cpu->WAIT))
+        Clock_cycle();
+
+    // brief delay before using interrupt
+    Clock_cycle_by(9 * 5 - 1);
+
+    // Trigger an interrupt.
+    Edge_hi(INT);
+
+    // Device will supply an EI instruction.
+
+    while (Edge_get(ctl->INTA_))
+        Clock_cycle();
+    // NOTE: leave INT active here ...
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    *cpu->Data = I8080_EI;
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // While we just had an EI, and INT is set,
+    // we should run one instruction before
+    // taking the next INT -- this mirrors the
+    // normal "EI;RET" return-from-interrupt
+    // in that the interrupt is not taken until
+    // after the return.
+
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Since INT and INTE were active at the
+    // start of that NOP instruction, DESim
+    // should now run another INT cycle. Hand
+    // out a NOP to execute. This will leave
+    // us with interrupts disabled but running
+    // the interrupted code.
+
+    while (Edge_get(ctl->INTA_))
+        Clock_cycle();
+    // NOTE: leave INT active here ...
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // INT test is over.
+    // release the interrupt request,
+    // then run an EI.
+
+    // Trigger an interrupt.
+    Edge_lo(INT);
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_EI;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+    // Execute a NOP instruction
+
+    while (!Edge_get(cpu->DBIN))
+        Clock_cycle();
+    while (Edge_get(ctl->MEMR_))
+        Clock_cycle();
+    *cpu->Data = I8080_NOP;
+
+    while (!Edge_get(cpu->SYNC))
+        Clock_cycle();
+
+    // fill out the last page.
+    Clock_cycle_by(9 * 8 - 3);
+
 
     printf("\n");
     printf("Signal Traces:\n");
