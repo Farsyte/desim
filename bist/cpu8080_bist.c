@@ -568,7 +568,6 @@ void Cpu8080_bist()
     // fill out the last page.
     Clock_cycle_by(9 * 8 - 3);
 
-
     printf("\n");
     printf("Signal Traces:\n");
     for (size_t i = 0; i < trace_count; ++i)

@@ -74,6 +74,10 @@ gdb::		${INST}
 # formatting in all source files.
 
 format::	${INST}
+	$E 'fix c headers ...'
+	$C bin/fix-c-includes.sh ${CSRC} ${BSRC}
+	$E 'fix h headers ...'
+	$C bin/fix-h-includes.sh ${HSRC}
 	$E 'indent ...'
 	$C bin/indent.sh ${HSRC} ${CSRC} ${BSRC}
 
