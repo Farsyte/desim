@@ -1,5 +1,4 @@
 #pragma once
-
 #include "edge.h"
 
 #define DEC8080_PAGES	64
@@ -10,30 +9,26 @@ typedef struct {
 
     pReg16              Addr;
 
-    // Control signals from Ctl8228
     pEdge               MEMR_;
     pEdge               MEMW_;
     pEdge               IOR_;
     pEdge               IOW_;
 
-    // When SHADOW_ENA is high, memory page 0 decodes are
-    // diverted to SHADOW_ENA.
-
-    pEdge               SHADOW_ENA;
-    pEdge               SHADOW_SEL;
+    pEdge               SHADOW_ENA;             // when high, we are shadowing
+    pEdge               SHADOW_SEL;             // enable signal shadowning page[0]
 
     pEdge               page[DEC8080_PAGES];
     pEdge               devi[DEC8080_PORTS];
     pEdge               devo[DEC8080_PORTS];
 
-    pEdge               hidden_ram;
-    pEdge               enabled;
+    pEdge               hidden_ram;             // bookkeeping: page[0] being shadowed
+    pEdge               enabled;                // bookkeeping: enable being asserted
 
 }                  *pDec8080, Dec8080[1];
 
-extern unsigned     Dec8080_debug;
-
-extern pEdge        Dec8080_take(Dec8080, int which_page, Edge e);
 extern void         Dec8080_init(Dec8080);
 extern void         Dec8080_linked(Dec8080);
+
+extern pEdge        Dec8080_take(Dec8080, int which_page, Edge e);
+
 extern void         Dec8080_bist();

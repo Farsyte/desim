@@ -1,5 +1,4 @@
 #pragma once
-
 #include "edge.h"
 
 extern Edge         CLOCK;

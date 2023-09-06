@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>
-
 #include "bist_macros.h"
 #include "clock.h"
 #include "rtc.h"

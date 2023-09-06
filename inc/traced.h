@@ -1,5 +1,4 @@
 #pragma once
-
 #include "edge.h"
 #include "sim_types.h"
 #include "tau.h"

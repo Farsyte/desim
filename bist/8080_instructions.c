@@ -1,5 +1,4 @@
 #include "8080_instructions.h"
-
 #include "sim_types.h"
 
 #define MATCH(op) case I8080_##op: return #op

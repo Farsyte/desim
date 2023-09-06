@@ -1,8 +1,6 @@
 #include "traced.h"
-
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "edge.h"
 #include "stub.h"
 

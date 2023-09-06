@@ -1,5 +1,4 @@
 #pragma once
-
 #include <stdint.h>
 
 // provide Bit which is core to all simulations.

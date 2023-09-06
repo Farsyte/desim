@@ -1,5 +1,4 @@
 #pragma once
-
 #include "clock.h"
 #include "ctl8228.h"
 #include "edge.h"
@@ -49,6 +48,8 @@ typedef struct sCpu8080 {
     Edge                WAIT;
     Edge                HLDA;
 
+    Edge                RETM1;
+
     Reg16               PC;
 
     Reg8                IR;
@@ -57,8 +58,6 @@ typedef struct sCpu8080 {
 
     Cpu8080_state       state;
     Cpu8080_state       state_next;
-
-    Edge                RETM1;
 
     Cpu8080_state       M1T1_from_int;
     Cpu8080_state       M1T1_at_RETM1_rise;

@@ -15,9 +15,7 @@ do
 
     (
         echo '#pragma once' > $o
-        echo
         grep '#include' < $h | sort
-        echo
         grep -v '#pragma once' < $h | grep -v '#include'
     ) | cat -s >> $o
 

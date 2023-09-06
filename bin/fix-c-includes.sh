@@ -16,9 +16,8 @@ do
     (
         (
             [ ! -e "$top/inc/$b.h" ] ||
-                printf '#include "%s.h"\n\n' "$b"
+                printf '#include "%s.h"\n' "$b"
             grep '#include <' < $c | sort
-            echo
             grep '#include "' < $c | sort
             ) | uniq.awk
         echo

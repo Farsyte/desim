@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "8080_status.h"
 #include "bist_macros.h"
 #include "clock.h"
@@ -49,8 +48,7 @@ static pTraced      trace_list[] = {
     tHLDA,
 };
 
-static size_t       trace_count =
-  sizeof trace_list / sizeof trace_list[0];
+static size_t       trace_count = sizeof trace_list / sizeof trace_list[0];
 
 static void dostatus(Byte status)
 {
@@ -197,8 +195,7 @@ void Ctl8228_bist()
             hi = umax;
         printf("\n");
         printf("From %lu to %lu u:\n", u, hi);
-        printf("From %.3f to %.3f μs:\n",
-               us_per_unit * u, us_per_unit * hi);
+        printf("From %.3f to %.3f μs:\n", us_per_unit * u, us_per_unit * hi);
         for (size_t i = 0; i < trace_count; ++i)
             Traced_print(trace_list[i], u, hi - u);
         u = hi;

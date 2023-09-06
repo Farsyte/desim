@@ -1,42 +1,77 @@
-#include "dec8080.h"
-
-#include <stdio.h>
 #include <assert.h>
-
+#include <stdio.h>
 #include "bist_macros.h"
+#include "dec8080.h"
 #include "stub.h"
 
 static Reg16        Addr;
 
-
-static Edge         MEMR_ = { {"bist.MEMR_"} };
-static Edge         MEMW_ = { {"bist.MEMW_"} };
-static Edge         IOR_ = { {"bist.IOR_"} };
-static Edge         IOW_ = { {"bist.IOW_"} };
+static Edge         MEMR_ = { {"bist_MEMR_"} };
+static Edge         MEMW_ = { {"bist_MEMW_"} };
+static Edge         IOR_ = { {"bist_IOR_"} };
+static Edge         IOW_ = { {"bist_IOW_"} };
 
 #define	PAGE_000		000000
 #define	PAGE_001		002000
 #define	PAGE_007		016000
 
-static Edge         SHADOW_ENA = { {"bist.SENA"} };
+static Edge         SHADOW_ENA = { {"bist_SENA"} };
 
-static Edge         RAM000 = { {"bist.RAM000"} };
-static Edge         RAM001 = { {"bist.RAM001"} };
-static Edge         ROM007 = { {"bist.ROM007"} };
+static Edge         RAM000 = { {"bist_RAM000"} };
+static Edge         RAM001 = { {"bist_RAM001"} };
+static Edge         ROM007 = { {"bist_ROM007"} };
 
-static Edge         IDEV000 = { {"bist.IDEV000"} };
-static Edge         IDEV001 = { {"bist.IDEV001"} };
-static Edge         ODEV000 = { {"bist.ODEV000"} };
-static Edge         ODEV001 = { {"bist.ODEV001"} };
+static Edge         IDEV000 = { {"bist_IDEV000"} };
+static Edge         IDEV001 = { {"bist_IDEV001"} };
+static Edge         ODEV000 = { {"bist_ODEV000"} };
+static Edge         ODEV001 = { {"bist_ODEV001"} };
 
-static Dec8080      dec =
-  { {"bist.dec1", Addr, MEMR_, MEMW_, IOR_, IOW_, SHADOW_ENA, ROM007,
-     {RAM000, RAM001, 0, 0, 0, 0, 0, ROM007},
-     {IDEV000, IDEV001}, {ODEV000, ODEV001}}
-};
+static Dec8080      dec = { {"bist_dec"} };
 
 void Dec8080_bist()
 {
+    Edge_init(MEMR_);
+    Edge_init(MEMW_);
+    Edge_init(IOR_);
+    Edge_init(IOW_);
+    Edge_init(SHADOW_ENA);
+
+    Edge_hi(MEMR_);
+    Edge_hi(MEMW_);
+    Edge_hi(IOR_);
+    Edge_hi(IOW_);
+
+    Edge_init(RAM000);
+    Edge_init(RAM001);
+    Edge_init(ROM007);
+    Edge_init(IDEV000);
+    Edge_init(IDEV001);
+    Edge_init(ODEV000);
+    Edge_init(ODEV001);
+
+    dec->name = "bist_dec1";
+    Dec8080_init(dec);
+
+    dec->Addr = Addr;
+    dec->MEMR_ = MEMR_;
+    dec->MEMW_ = MEMW_;
+    dec->IOR_ = IOR_;
+    dec->IOW_ = IOW_;
+    dec->SHADOW_ENA = SHADOW_ENA;
+    dec->SHADOW_SEL = ROM007;
+
+    dec->page[000] = RAM000;
+    dec->page[001] = RAM001;
+    dec->page[007] = ROM007;
+
+    dec->devi[000] = IDEV000;
+    dec->devi[001] = IDEV001;
+
+    dec->devo[000] = ODEV000;
+    dec->devo[001] = ODEV001;
+
+    Dec8080_linked(dec);
+
     PRINT_TOP();
 
     Edge_init(MEMR_);

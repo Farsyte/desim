@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <stdio.h>
-
 #include "bist_macros.h"
 #include "clock.h"
 #include "timing_check.h"

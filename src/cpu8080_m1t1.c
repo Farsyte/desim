@@ -1,5 +1,4 @@
 #include "cpu8080_m1t1.h"
-
 #include "cpu8080.h"
 
 static void Cpu8080_maybe_int(Cpu8080 cpu)

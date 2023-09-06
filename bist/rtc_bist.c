@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <stdio.h>
-
 #include "bist_macros.h"
 #include "rtc.h"
 

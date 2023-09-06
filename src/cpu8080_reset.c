@@ -1,7 +1,5 @@
 #include "cpu8080_reset.h"
-
 #include <assert.h>
-
 #include "stub.h"
 #include "tau.h"
 

@@ -1,7 +1,5 @@
 #include "cpu8080_intack.h"
-
 #include <stdlib.h>
-
 #include "8080_status.h"
 #include "stub.h"
 
