@@ -225,10 +225,21 @@ void Sys8080_bist()
     // - some time not yet READY
     // - RESET runs code from SHADOW ROM
     // - immediate jump to normal ROM location
-    // - disabling of the shadow facility
+    // - turn off the shadow facility
     // - load a program into RAM
     // - execute the RAM program
     // === === === === === === === === === === === === === ===
+
+    // Currently, I have 8 KiB of ROM and 16 KiB of RAM simulated.
+    // I want to boot into FIG-FORTH 8080, which (unless I change
+    // the .asm file) wants to be in low ram.
+    //
+    // So I need a very tiny bit of code in ROM that shadows
+    // the start of memory, which jumps up to the actual ROM
+    // location, does some init, and dives into FORTH.
+    //
+    // FORTH wants to see some CP/M BIOS entries. These need
+    // to land in ROM.
 
     // Initial state: RESET is asserted, READY is not.
 

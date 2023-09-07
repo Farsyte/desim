@@ -14,21 +14,22 @@ typedef struct {
     pEdge               IOR_;
     pEdge               IOW_;
 
+    pEdge               DBIN;
+    pEdge               WR_;
+
     pEdge               SHADOW_ENA;             // when high, we are shadowing
-    pEdge               SHADOW_SEL;             // enable signal shadowning page[0]
+    pEdge               SHADOW_CE;              // shadow memory "ce" signal
 
-    pEdge               page[DEC8080_PAGES];
-    pEdge               devi[DEC8080_PORTS];
-    pEdge               devo[DEC8080_PORTS];
+    pEdge               memr[DEC8080_PAGES];
+    pEdge               memw[DEC8080_PAGES];
+    pEdge               devr[DEC8080_PORTS];
+    pEdge               devw[DEC8080_PORTS];
 
-    pEdge               hidden_ram;             // bookkeeping: page[0] being shadowed
-    pEdge               enabled;                // bookkeeping: enable being asserted
-
+    pEdge               asserted;               // which "ce" signal Dec asserted
+    pEdge               shadowed;               // which "ce" signal is being shadowed
 }                  *pDec8080, Dec8080[1];
 
 extern void         Dec8080_init(Dec8080);
 extern void         Dec8080_linked(Dec8080);
-
-extern pEdge        Dec8080_take(Dec8080, int which_page, Edge e);
 
 extern void         Dec8080_bist();
