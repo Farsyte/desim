@@ -221,3 +221,47 @@ aspects of the processor; for example, we will not simulate a number
 of internal latches and buffers. The scope of the simulation is to
 allow execution of historical 8080 software, along with the ability to
 extract waveform diagrams of signals external to the chips.
+
+** Rom8316: Read-Only Memory (1024x8 bits)
+
+This roughly simulates the behavior of an 8316 ROM chip, with some
+external logic allowing us to drive this module from a single Chip
+Enable representing when DBIN rises with our address range.
+
+The event at /MEMR↓ ("you are addressed") is not yet in the
+simulation, as more design needs to be done around how the ROM
+gains control to end the WAIT states.
+
+** Ram8107x8: Read-Write Memory (4096x8 bits)
+
+This roughly simulates the behavior of an eight 8107 RAM chips, with
+some external logic allowing us to drive this module from a single
+Chip Enable representing when DBIN rises with our address range, and a
+simple Write Enable that rises when /WR falls with our address range.
+
+The events at /MEMR↓ and /MEMW↓ ("you are addressed") are not yet in
+the simulation, as more design needs to be done around how the RAM
+gains control to end the WAIT states.
+
+** Future Parts (maybe, maybe not)
+
+*** 8255 Programmable Peripheral Interface
+
+supports 24 i/o pins
+
+*** 8251 Programmable Communication Interface
+
+Serial Port (sync or async)
+
+*** 8205 high speed 1-of-8 decoder
+
+*** 8214 priority interrupt control unit
+
+*** 8216/8226 parallel bidirectional bus driver
+
+*** 8253 programmable interval timer
+
+*** 8257 programmable dma controller
+
+*** 8259 programmable interrupt controller
+

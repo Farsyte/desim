@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include "bist_macros.h"
 #include "clock.h"
@@ -11,6 +12,7 @@
 #include "sys8080.h"
 #include "tau.h"
 #include "timing_check.h"
+#include "tty8080.h"
 
 static void desim_bist()
 {
@@ -45,13 +47,16 @@ static void desim_bench()
 
 int main(int argc, char **argv)
 {
-    PRINT_TOP();
-
     (void)argc;
     (void)argv;
 
+    if (argc > 1 && !strcmp(argv[1], "tty")) {
+        Tty8080_bist();
+        return 0;
+    }
+
+    PRINT_TOP();
     desim_bist();
     desim_bench();
-
     PRINT_END();
 }

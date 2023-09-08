@@ -32,6 +32,9 @@ WAITE		:= modify delete
 run::		${INST}
 	$C ${INST} > ${LOGDIR}run-${PROG}.log 2> ${LOGDIR}run-${PROG}.err
 
+tty::		${INST}
+	${INST} tty
+
 TEST_OBS	:= ${PROG:%=${LOGDIR}run-%.log}
 TEST_EXP	:= ${PROG:%=${LOGDIR}run-%.log.expected}
 TEST_CMP	:= ${PROG:%=${LOGDIR}run-%.log.difference}

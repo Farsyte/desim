@@ -8,6 +8,8 @@ top=$(dirname "$here")
 
 cd "$top"
 
+reset
+
 cat <<EOF
 
      === === === === === === === === === === === === === === ===
@@ -18,7 +20,7 @@ cat <<EOF
 EOF
 
 
-make -kj loop
+make -kj loop && make tty
 make logs
 
 cat <<EOF
@@ -31,7 +33,6 @@ cat <<EOF
              waiting for next update that needs a build.
 
 EOF
-
 
 exec inotifywait -q -r \
     -e modify -e delete \
