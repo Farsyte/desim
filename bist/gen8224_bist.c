@@ -173,7 +173,7 @@ void Gen8224_bench()
     Tau                 wall_t0_ns, wall_dt_ns;
     double              sim_t0_us = 0;
     double              sim_dt_us = 0;
-    Tau                 mint = 25000000;
+    Tau                 mint = 2500000;
 
     while (1) {
 

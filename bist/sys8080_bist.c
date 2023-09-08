@@ -11,6 +11,8 @@
 #include "util.h"
 
 static void         Sys8080_bist_init();
+static void         Sys8080_bist_down();
+
 static void         fp_verbose_adj();
 static void         fp_memr_fall(void *arg);
 static void         fp_memr_rise(void *arg);
@@ -131,7 +133,7 @@ void Sys8080_bench()
     Tau                 wall_t0_ns, wall_dt_ns;
     double              sim_t0_us = 0;
     double              sim_dt_us = 0;
-    Tau                 mint = 250000000;
+    Tau                 mint = 2500000;
 
     Tau                 sync_count = 0;
     EDGE_RISE(SYNC, sync_counter, &sync_count);
@@ -170,6 +172,8 @@ void Sys8080_bench()
     fprintf(stderr, "\n");
 
     assert(time_ratio > 0.5);
+
+    Sys8080_bist_down();
 
     PRINT_END();
 }
@@ -277,6 +281,8 @@ void Sys8080_bist()
         u = hi;
     }
 
+    Sys8080_bist_down();
+
     PRINT_END();
 }
 
@@ -286,6 +292,11 @@ static void Sys8080_bist_init()
     Sys8080_init(sys);
     sys->OSC = CLOCK;
     Sys8080_linked(sys);
+}
+
+static void Sys8080_bist_down()
+{
+    Sys8080_down(sys);
 }
 
 static void fp_verbose_adj()
