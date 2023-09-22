@@ -1,8 +1,6 @@
 #include "timing_check.h"
-
 #include <assert.h>
 #include <stdio.h>
-
 #include "clock.h"
 #include "util.h"
 
@@ -75,8 +73,7 @@ void timing_check_print(TimingCheck e)
     if (fb & TIMING_CHECK_NO) {
         printf(" -- FAIL, NO samples observed");
     } else {
-        printf(", saw %lu to %lu ns",
-               UNITS_TO_NS(e->lo), UNITS_TO_NS(e->hi));
+        printf(", saw %lu to %lu ns", UNITS_TO_NS(e->lo), UNITS_TO_NS(e->hi));
         if (fb) {
             printf(" -- FAIL,");
             if (fb & TIMING_CHECK_LB)

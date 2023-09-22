@@ -1,5 +1,4 @@
 #pragma once
-
 #include "sim_types.h"
 
 #define	I8080_NOP	(0000)

@@ -1,7 +1,5 @@
 #include "cpu8080_hlt.h"
-
 #include <assert.h>
-
 #include "8080_instructions.h"
 #include "8080_status.h"
 #include "stub.h"

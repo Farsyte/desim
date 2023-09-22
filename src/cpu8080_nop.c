@@ -1,5 +1,4 @@
 #include "cpu8080_nop.h"
-
 #include "8080_instructions.h"
 
 static void         s_nop(Cpu8080 cpu, Cpu8080_phase ph);

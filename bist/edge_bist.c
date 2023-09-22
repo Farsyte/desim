@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <stdio.h>
-
 #include "bist_macros.h"
 #include "edge.h"
 #include "rtc.h"
@@ -68,8 +67,7 @@ void Edge_bench()
 
     fprintf(stderr, "\n");
     fprintf(stderr, "Edge benchmark:\n");
-    fprintf(stderr, "  count is %lu ticks, %lu tocks\n",
-            s->ticks, s->tocks);
+    fprintf(stderr, "  count is %lu ticks, %lu tocks\n", s->ticks, s->tocks);
     fprintf(stderr, "  elapsed time is %.3f ms\n", dt / 1000000.0);
 
     double              ns_per_call = dt * 1.0 / (s->ticks + s->tocks);

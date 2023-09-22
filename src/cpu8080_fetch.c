@@ -1,5 +1,4 @@
 #include "cpu8080_fetch.h"
-
 #include "8080_status.h"
 
 static void         s_fetch_T1(Cpu8080 cpu, Cpu8080_phase ph);

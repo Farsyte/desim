@@ -1,7 +1,5 @@
 #include "cpu8080_invalid.h"
-
 #include <stdio.h>
-
 #include "8080_instructions.h"
 
 static void         s_invalid_loud(Cpu8080 cpu, Cpu8080_phase ph);

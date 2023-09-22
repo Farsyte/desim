@@ -1,11 +1,7 @@
 #pragma once
-
 #include "sim_types.h"
 #include "tau.h"
 #include <stddef.h>
-
-//typedef void       *EdgeArg;
-//typedef void EdgeFn (EdgeArg);
 
 typedef void        (*EdgeFn)(void *);
 
@@ -34,11 +30,9 @@ extern void         Edge_init(Edge e);
 #define EDGE_RISE(e,fn,arg)	Edge_rise(e, (EdgeFn)fn, (void *)arg, #fn, #arg)
 #define EDGE_FALL(e,fn,arg)	Edge_fall(e, (EdgeFn)fn, (void *)arg, #fn, #arg)
 
-extern void         Edge_rise(Edge e, EdgeFn fn, void *arg,
-                              Name fn_name, Name arg_name);
+extern void         Edge_rise(Edge e, EdgeFn fn, void *arg, Name fn_name, Name arg_name);
 
-extern void         Edge_fall(Edge e, EdgeFn fn, void *arg,
-                              Name fn_name, Name arg_name);
+extern void         Edge_fall(Edge e, EdgeFn fn, void *arg, Name fn_name, Name arg_name);
 
 extern Bit          Edge_get(Edge e);
 extern void         Edge_set(Edge e, Bit value);

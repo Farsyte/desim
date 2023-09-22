@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "bist_macros.h"
 #include "clock.h"
 #include "gen8224.h"
@@ -35,8 +34,7 @@ static pTraced      trace_list[] = {
     tRDYIN,
     tREADY,
 };
-static size_t       trace_count =
-  sizeof trace_list / sizeof trace_list[0];
+static size_t       trace_count = sizeof trace_list / sizeof trace_list[0];
 
 // Timing for 8224 for t_CY=500ns, f=18.00 MHz:
 //
@@ -159,7 +157,7 @@ void Gen8224_bench()
 {
     PRINT_TOP();
 
-    Edge_hi(SYNC);      /* no cpu, mostly test with SYNC always asserted */
+    Edge_lo(SYNC);      /* start with SYNC disabled (required initial condition) */
     Edge_lo(RESIN_);    /* start with RESIN asserted */
     Edge_lo(RDYIN);     /* start with RDYIN not asserted */
 
@@ -168,6 +166,8 @@ void Gen8224_bench()
     assert(UNIT == 0);
     Gen8224_init(gen);
     Gen8224_linked(gen);
+
+    Edge_hi(SYNC);      /* mostly test with SYNC always asserted */
 
     Tau                 delta_unit = 1000;
     Tau                 wall_t0_ns, wall_dt_ns;
@@ -201,9 +201,7 @@ void Gen8224_bench()
     fprintf(stderr, "   sim time elapsed: %.3f ms\n", s_ms);
 
     double              time_ratio = s_ms / w_ms;
-    fprintf(stderr,
-            "  sim running at %.2fx real time"
-            " (higher is better)\n", time_ratio);
+    fprintf(stderr, "  sim running at %.2fx real time" " (higher is better)\n", time_ratio);
     fprintf(stderr, "\n");
 
     // I am simulating the 8224 at several times its original
@@ -331,8 +329,7 @@ void Gen8224_bist()
         if (hi > umax)
             hi = umax;
         printf("\n");
-        printf("From %.3f to %.3f μs:\n",
-               us_per_unit * u, us_per_unit * hi);
+        printf("From %.3f to %.3f μs:\n", us_per_unit * u, us_per_unit * hi);
         for (size_t i = 0; i < trace_count; ++i)
             Traced_print(trace_list[i], u, hi - u);
         u = hi;

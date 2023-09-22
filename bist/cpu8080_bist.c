@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <stdio.h>
-
 #include "8080_instructions.h"
 #include "8080_status.h"
 #include "bist_macros.h"
@@ -11,15 +10,15 @@
 #include "rtc.h"
 #include "traced.h"
 
-extern Gen8224      gen;
-extern Ctl8228      ctl;
-extern Cpu8080      cpu;
+static Gen8224      gen;
+static Ctl8228      ctl;
+static Cpu8080      cpu;
 
 // Signals owned by the environment, so far:
-Edge                RESIN_ = { {"bist./RESIN"} };
-Edge                RDYIN = { {"bist.RDYIN"} };
-Edge                HOLD = { {"bist.HOLD"} };
-Edge                INT = { {"bist.INT"} };
+Edge                RESIN_ = { {"RESIN_"} };
+Edge                RDYIN = { {"RDYIN"} };
+Edge                HOLD = { {"HOLD"} };
+Edge                INT = { {"INT"} };
 
 static const pEdge  PHI1 = gen->PHI1;
 static const pEdge  PHI2 = gen->PHI2;
@@ -97,27 +96,51 @@ static pTraced      trace_list[] = {
     tRETM1,
 };
 
-static size_t       trace_count =
-  sizeof trace_list / sizeof trace_list[0];
+static size_t       trace_count = sizeof trace_list / sizeof trace_list[0];
 
-Gen8224             gen = {
-    {"bist.gen1", CLOCK, RESIN_, RDYIN, SYNC
-     // PHI1 PHI2 RESET READY STSTB_
-     }
-};
-Ctl8228             ctl = {
-    {"bist.ctl1", Data, STSTB_, DBIN, WR_, HLDA
-     // MEMR_ MEMW_ IOR_ IOW_ INTA_
-     }
-};
-Cpu8080             cpu = {
-    {"bist.cpu1", PHI1, PHI2, RESET, READY, HOLD, INT
-     // Addr Data INTE DBIN WR_ SYNC WAIT HLDA
-     }
-};
+static Gen8224      gen = { {"gen"} };
+static Ctl8228      ctl = { {"ctl"} };
+static Cpu8080      cpu = { {"cpu"} };
 
-unsigned            fp_verbose = 5;
-unsigned            fp_output = 0;
+static unsigned     fp_verbose = 5;
+static unsigned     fp_output = 0;
+
+static void Cpu8080_bist_init()
+{
+    Edge_lo(RESIN_);
+    Edge_lo(RDYIN);
+    Edge_lo(HOLD);
+    Edge_lo(INT);
+
+    Clock_init(18.00);
+
+    Gen8224_init(gen);
+    Ctl8228_init(ctl);
+    Cpu8080_init(cpu);
+
+    gen->OSC = CLOCK;
+    gen->RESIN_ = RESIN_;
+    gen->RDYIN = RDYIN;
+    gen->SYNC = SYNC;
+
+    ctl->Data = Data;
+    ctl->STSTB_ = STSTB_;
+    ctl->DBIN = DBIN;
+    ctl->WR_ = WR_;
+    ctl->HLDA = HLDA;
+
+    cpu->PHI1 = PHI1;
+    cpu->PHI2 = PHI2;
+
+    cpu->RESET = RESET;
+    cpu->READY = READY;
+    cpu->HOLD = HOLD;
+    cpu->INT = INT;
+
+    Gen8224_linked(gen);
+    Ctl8228_linked(ctl);
+    Cpu8080_linked(cpu);
+}
 
 static void fp_verbose_adj()
 {
@@ -161,9 +184,7 @@ static void fp_ststb_fall(void *arg)
            (status & STATUS_STACK) ? " STACK" : "",
            (status & STATUS_HLTA) ? " HLTA" : "",
            (status & STATUS_OUT) ? " OUT" : "",
-           (status & STATUS_M1) ? " M1" : "",
-           (status & STATUS_INP) ? " INP" : "",
-           (status & STATUS_MEMR) ? " MEMR" : "");
+           (status & STATUS_M1) ? " M1" : "", (status & STATUS_INP) ? " INP" : "", (status & STATUS_MEMR) ? " MEMR" : "");
     printf("%s%s%s%s%s%s%s%s%s%s",
            (status == STATUS_FETCH) ? " == STATUS_FETCH" : "",
            (status == STATUS_MREAD) ? " == STATUS_MREAD" : "",
@@ -173,8 +194,7 @@ static void fp_ststb_fall(void *arg)
            (status == STATUS_INPUTRD) ? " == STATUS_INPUTRD" : "",
            (status == STATUS_OUTPUTWR) ? " == STATUS_OUTPUTWR" : "",
            (status == STATUS_INTACK) ? " == STATUS_INTACK" : "",
-           (status == STATUS_HALTACK) ? " == STATUS_HALTACK" : "",
-           (status == STATUS_INTACKW) ? " == STATUS_INTACKW" : "");
+           (status == STATUS_HALTACK) ? " == STATUS_HALTACK" : "", (status == STATUS_INTACKW) ? " == STATUS_INTACKW" : "");
     printf("\n");
     fp_verbose_adj();
 }
@@ -183,9 +203,7 @@ static void fp_dbin_rise(void *arg)
     if (fp_verbose < 3)
         return;
     (void)arg;
-    printf("%8.3f: DBIN↑%s%s 0%06o\n", TU,
-           Edge_get(MEMR_) ? "" : " /MEMR",
-           Edge_get(IOR_) ? "" : " /IOR", *Addr);
+    printf("%8.3f: DBIN↑%s%s 0%06o\n", TU, Edge_get(MEMR_) ? "" : " /MEMR", Edge_get(IOR_) ? "" : " /IOR", *Addr);
     fp_verbose_adj();
 }
 static void fp_dbin_fall(void *arg)
@@ -195,8 +213,7 @@ static void fp_dbin_fall(void *arg)
     (void)arg;
     // MEMR_ and IOR_ are released on DBIN falling edge,
     // service happening before we get to this service.
-    printf("%8.3f: DBIN↓ 0%06o 0%03o %s\n",
-           TU, *Addr, *Data, disassemble(*Data));
+    printf("%8.3f: DBIN↓ 0%06o 0%03o %s\n", TU, *Addr, *Data, disassemble(*Data));
     fp_verbose_adj();
 }
 
@@ -207,24 +224,6 @@ static void fp_print_setup()
     EDGE_FALL(STSTB_, fp_ststb_fall, 0);
     EDGE_RISE(DBIN, fp_dbin_rise, 0);
     EDGE_FALL(DBIN, fp_dbin_fall, 0);
-}
-
-static void Cpu8080_bist_init()
-{
-    Edge_lo(RESIN_);
-    Edge_lo(RDYIN);
-    Edge_lo(HOLD);
-    Edge_lo(INT);
-
-    Clock_init(18.00);
-
-    Gen8224_init(gen);
-    Ctl8228_init(ctl);
-    Cpu8080_init(cpu);
-
-    Gen8224_linked(gen);
-    Ctl8228_linked(ctl);
-    Cpu8080_linked(cpu);
 }
 
 static void sync_counter(Tau *ctr)
@@ -283,17 +282,13 @@ void Cpu8080_bench()
 
     fprintf(stderr, "\n");
     fprintf(stderr, "Cpu8080 benchmark:\n");
-    fprintf(stderr, " wall time per SYNC: %.3f μs\n",
-            w_ms * 1000.0 / sync_count);
-    fprintf(stderr, "  sim time per SYNC: %.3f μs\n",
-            s_ms * 1000.0 / sync_count);
+    fprintf(stderr, " wall time per SYNC: %.3f μs\n", w_ms * 1000.0 / sync_count);
+    fprintf(stderr, "  sim time per SYNC: %.3f μs\n", s_ms * 1000.0 / sync_count);
     fprintf(stderr, "  wall time elapsed: %.3f ms\n", w_ms);
     fprintf(stderr, "   sim time elapsed: %.3f ms\n", s_ms);
 
     double              time_ratio = s_ms / w_ms;
-    fprintf(stderr,
-            "  sim running at %.2fx real time"
-            " (higher is better)\n", time_ratio);
+    fprintf(stderr, "  sim running at %.2fx real time" " (higher is better)\n", time_ratio);
     fprintf(stderr, "\n");
 
     // I am simulating the 8080 at several times its original
@@ -583,8 +578,7 @@ void Cpu8080_bist()
         if (hi > umax)
             hi = umax;
         printf("\n");
-        printf("From %.3f to %.3f μs:\n",
-               us_per_unit * u, us_per_unit * hi);
+        printf("From %.3f to %.3f μs:\n", us_per_unit * u, us_per_unit * hi);
         for (size_t i = 0; i < trace_count; ++i)
             Traced_print(trace_list[i], u, hi - u);
         u = hi;

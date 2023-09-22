@@ -1,5 +1,4 @@
 #pragma once
-
 #include "sim_types.h"
 #include "tau.h"
 

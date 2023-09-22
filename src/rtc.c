@@ -1,5 +1,4 @@
 #include "rtc.h"
-
 #include <time.h>
 
 Tau rtc_ns()

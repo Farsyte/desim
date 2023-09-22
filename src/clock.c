@@ -1,7 +1,5 @@
 #include "clock.h"
-
 #include <stdio.h>
-
 #include "stub.h"
 #include "util.h"
 

@@ -1,131 +1,44 @@
 #include "dec8080.h"
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "util.h"
 #include "stub.h"
-
-pEdge Dec8080_take(Dec8080 dec, int which_page, Edge e)
-{
-    assert(dec);
-    assert(0 <= which_page);
-    assert(which_page < DEC8080_PAGES);
-    pEdge               rv = dec->page[which_page];
-    dec->page[which_page] = e;
-    return rv;
-}
-
-void Dec8080_init(Dec8080 dec)
-{
-    Edge_init(dec->SHADOW_ENA);
-    Edge_init(dec->SHADOW_SEL);
-    dec->hidden_ram = 0;
-    dec->enabled = 0;
-}
+#include "util.h"
 
 #define ASSERT_LINK(which, reqval)                         \
     do {                                                   \
         if (!dec->which)                                   \
-            STUB(" %s: link '%s' is not set",              \
+            FAIL(" %s: '%s' is not linked",              \
                  dec->name, #which);                       \
-        else if (!dec->which->name)                        \
-            STUB(" %s: link '%s' has no name",            \
+        if (!dec->which->name)                             \
+            FAIL(" %s: '%s' has no name",             \
                  dec->name, #which);                       \
-        else if (!dec->which->name[0])                     \
-            STUB(" %s: link '%s' has empty name",         \
+        if (!dec->which->name[0])                          \
+            FAIL(" %s: '%s' has empty name",          \
                  dec->name, #which);                       \
-        else if (Edge_get(dec->which) != reqval)           \
-            STUB(" %s: link '%s' has wrong initial state", \
+        if (Edge_get(dec->which) != reqval)                \
+            FAIL(" %s: '%s' has wrong initial state", \
                  dec->name, #which);                       \
-        else                                               \
-            break;                                         \
-        abort();                                           \
     } while (0)
 
-static void assert_optional_link(Dec8080 dec, Edge e, Cstr list,
-                                 int num)
+static void         assert_optional_link(Dec8080 dec, Edge e, Cstr list, int num);
+
+static void         decode_rd(Dec8080 dec);
+static void         decode_wr(Dec8080 dec);
+
+static void         release(Dec8080 dec);
+
+static void         shadow_enable(Dec8080 dec);
+static void         shadow_disable(Dec8080 dec);
+
+void Dec8080_init(Dec8080 dec)
 {
-    if (e) {
-        if (!e->name)
-            STUB(" %s: link '%s[%d]' has no which",
-                 dec->name, list, num);
-        else if (!e->name[0])
-            STUB(" %s: link '%s[%d]' has empty which",
-                 dec->name, list, num);
-        else if (Edge_get(e) != 0)
-            STUB(" %s: link '%s[%d]' is high, must be low",
-                 dec->name, list, num);
-        else
-            return;
-        abort();
-    }
-}
+    assert(dec);
+    assert(dec->name);
+    assert(dec->name[0]);
 
-static void shadow_is_rom(Dec8080 dec)
-{
-    if (!dec->SHADOW_SEL)
-        return;
-
-    if (dec->hidden_ram)
-        return;
-
-    if (dec->SHADOW_SEL == dec->page[0])
-        return;
-
-    dec->hidden_ram = dec->page[0];
-    dec->page[0] = dec->SHADOW_SEL;
-}
-
-static void shadow_is_ram(Dec8080 dec)
-{
-    if (!dec->SHADOW_SEL)
-        return;
-
-    if (dec->SHADOW_SEL != dec->page[0])
-        return;
-
-    dec->page[0] = dec->hidden_ram;
-    dec->hidden_ram = 0;
-}
-
-static void decode_mem(Dec8080 dec)
-{
-    Word                p = *dec->Addr >> 10;
-    pEdge               e = dec->page[p];
-    if (!e)
-        return;
-    Edge_hi(e);
-    dec->enabled = e;
-}
-
-static void decode_ior(Dec8080 dec)
-{
-    Word                p = *dec->Addr & 0377;
-    pEdge               e = dec->devi[p];
-    if (!e)
-        return;
-    Edge_hi(e);
-    dec->enabled = e;
-}
-
-static void decode_iow(Dec8080 dec)
-{
-    Word                p = *dec->Addr & 0377;
-    pEdge               e = dec->devo[p];
-    if (!e)
-        return;
-    Edge_hi(e);
-    dec->enabled = e;
-}
-
-static void release_enable(Dec8080 dec)
-{
-    if (!dec->enabled)
-        return;
-    Edge_lo(dec->enabled);
-    dec->enabled = 0;
+    dec->asserted = 0;
+    dec->shadowed = 0;
 }
 
 void Dec8080_linked(Dec8080 dec)
@@ -135,34 +48,124 @@ void Dec8080_linked(Dec8080 dec)
     ASSERT_LINK(IOR_, 1);
     ASSERT_LINK(IOW_, 1);
 
-    if (dec->SHADOW_SEL || dec->SHADOW_ENA) {
-        ASSERT_LINK(SHADOW_SEL, 0);
+    ASSERT_LINK(DBIN, 0);
+    ASSERT_LINK(WR_, 1);
+
+    if (dec->SHADOW_ENA || dec->SHADOW_CE) {
         ASSERT_LINK(SHADOW_ENA, 0);
+        ASSERT_LINK(SHADOW_CE, 0);
     }
 
-    assert(!dec->hidden_ram);
-    assert(!dec->enabled);
+    assert(!dec->asserted);
+    assert(!dec->asserted);
+    assert(!dec->shadowed);
+    assert(!dec->shadowed);
 
     for (int page = 0; page < DEC8080_PAGES; ++page)
-        assert_optional_link(dec, dec->page[page], "page", page);
+        assert_optional_link(dec, dec->memr[page], "memr", page);
+    for (int page = 0; page < DEC8080_PAGES; ++page)
+        assert_optional_link(dec, dec->memw[page], "memw", page);
+
     for (int port = 0; port < DEC8080_PORTS; ++port)
-        assert_optional_link(dec, dec->devi[port], "devi", port);
+        assert_optional_link(dec, dec->devr[port], "devr", port);
     for (int port = 0; port < DEC8080_PORTS; ++port)
-        assert_optional_link(dec, dec->devo[port], "devo", port);
+        assert_optional_link(dec, dec->devw[port], "devw", port);
 
     if (dec->SHADOW_ENA) {
-        EDGE_RISE(dec->SHADOW_ENA, shadow_is_rom, dec);
-        EDGE_FALL(dec->SHADOW_ENA, shadow_is_ram, dec);
+        EDGE_RISE(dec->SHADOW_ENA, shadow_enable, dec);
+        EDGE_FALL(dec->SHADOW_ENA, shadow_disable, dec);
     }
 
-    EDGE_FALL(dec->MEMR_, decode_mem, dec);
-    EDGE_FALL(dec->MEMW_, decode_mem, dec);
-    EDGE_FALL(dec->IOR_, decode_ior, dec);
-    EDGE_FALL(dec->IOW_, decode_iow, dec);
+    EDGE_RISE(dec->DBIN, decode_rd, dec);
+    EDGE_FALL(dec->WR_, decode_wr, dec);
+    EDGE_RISE(dec->WR_, release, dec);
+    EDGE_FALL(dec->DBIN, release, dec);
+}
 
-    EDGE_RISE(dec->MEMR_, release_enable, dec);
-    EDGE_RISE(dec->MEMW_, release_enable, dec);
-    EDGE_RISE(dec->IOR_, release_enable, dec);
-    EDGE_RISE(dec->IOW_, release_enable, dec);
+static void assert_optional_link(Dec8080 dec, Edge e, Cstr list, int num)
+{
+    if (e) {
+        if (!e->name)
+            FAIL(" %s: link '%s[%d]' has no name", dec->name, list, num);
+        if (!e->name[0])
+            FAIL(" %s: link '%s[%d]' has empty name", dec->name, list, num);
+        if (Edge_get(e) != 0)
+            FAIL(" %s: link '%s[%d]' is high, must be low", dec->name, list, num);
+    }
+}
 
+static void decode_rd(Dec8080 dec)
+{
+    if (Edge_get(dec->MEMR_) == 0) {
+        Word                p = *dec->Addr >> 10;
+        pEdge               e = dec->memr[p];
+        if (e) {
+            Edge_hi(e);
+            dec->asserted = e;
+        }
+    }
+    if (Edge_get(dec->IOR_) == 0) {
+        Word                p = *dec->Addr & 0377;
+        pEdge               e = dec->devr[p];
+        if (e) {
+            Edge_hi(e);
+            dec->asserted = e;
+        }
+    }
+}
+
+static void decode_wr(Dec8080 dec)
+{
+    if (Edge_get(dec->MEMW_) == 0) {
+        Word                p = *dec->Addr >> 10;
+        pEdge               e = dec->memw[p];
+        if (e) {
+            Edge_hi(e);
+            dec->asserted = e;
+        }
+    }
+    if (Edge_get(dec->IOW_) == 0) {
+        Word                p = *dec->Addr & 0377;
+        pEdge               e = dec->devw[p];
+        if (e) {
+            Edge_hi(e);
+            dec->asserted = e;
+        }
+    }
+}
+
+static void release(Dec8080 dec)
+{
+    if (dec->asserted) {
+        Edge_lo(dec->asserted);
+        dec->asserted = 0;
+    }
+    if (dec->asserted) {
+        Edge_lo(dec->asserted);
+        dec->asserted = 0;
+    }
+}
+
+static void shadow_enable(Dec8080 dec)
+{
+    if (dec->SHADOW_CE && !dec->shadowed && (dec->memr[0] != dec->SHADOW_CE)) {
+        dec->shadowed = dec->memr[0];
+        dec->memr[0] = dec->SHADOW_CE;
+    }
+    if (dec->SHADOW_CE && !dec->shadowed && (dec->memr[0] != dec->SHADOW_CE)) {
+        dec->shadowed = dec->memr[0];
+        dec->memr[0] = dec->SHADOW_CE;
+    }
+}
+
+static void shadow_disable(Dec8080 dec)
+{
+    if (dec->SHADOW_CE && (dec->memr[0] == dec->SHADOW_CE)) {
+        dec->memr[0] = dec->shadowed;
+        dec->shadowed = 0;
+    }
+    if (dec->SHADOW_CE && (dec->memr[0] == dec->SHADOW_CE)) {
+        dec->memr[0] = dec->shadowed;
+        dec->shadowed = 0;
+    }
 }

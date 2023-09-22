@@ -5,7 +5,7 @@
 -bbb
 -nfca
 -nfc1
--lc72
+-lc124
 -c25
 -cd49
 -cp49
@@ -41,7 +41,7 @@
 -ip5
 -lps
 -il0
--l72
+-l124
 -nbbo
 -hnl
 
