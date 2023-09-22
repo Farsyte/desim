@@ -253,7 +253,7 @@ void Cpu8080_bench()
     Tau                 wall_t0_ns, wall_dt_ns;
     double              sim_t0_us = 0;
     double              sim_dt_us = 0;
-    Tau                 mint = 250000000;
+    Tau                 mint = 2500000;
 
     Tau                 sync_count = 0;
     EDGE_RISE(cpu->SYNC, sync_counter, &sync_count);

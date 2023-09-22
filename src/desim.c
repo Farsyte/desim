@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include "bist_macros.h"
 #include "clock.h"
@@ -8,6 +9,7 @@
 #include "edge.h"
 #include "gen8224.h"
 #include "rtc.h"
+#include "sio8080.h"
 #include "sys8080.h"
 #include "tau.h"
 #include "timing_check.h"
@@ -33,6 +35,8 @@ static void desim_bench()
 {
     PRINT_TOP();
 
+    // Sio8080_bench();
+
     Edge_bench();
     Clock_bench();
     Gen8224_bench();
@@ -45,6 +49,12 @@ static void desim_bench()
 
 int main(int argc, char **argv)
 {
+
+    if (argc > 1 && !strcmp(argv[1], "sio")) {
+        Sio8080_bist();
+        return 0;
+    }
+
     PRINT_TOP();
 
     (void)argc;

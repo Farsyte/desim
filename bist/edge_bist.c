@@ -44,7 +44,7 @@ void Edge_bench()
 
     unsigned long       max_iter = 1000;
     Tau                 t0, dt;
-    Tau                 mint = 25000000;
+    Tau                 mint = 2500000;
 
     while (1) {
         s->ticks = 0;

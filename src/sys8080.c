@@ -19,6 +19,7 @@ void Sys8080_init(Sys8080 sys)
     sys->ctl->name = format("%s.ctl", sys->name);
     sys->cpu->name = format("%s.cpu", sys->name);
     sys->dec->name = format("%s.dec", sys->name);
+    sys->sio->name = format("%s.sio", sys->name);
 
     for (int r = 0; r < 4; ++r)
         sys->rom[r]->name = format("%s.rom%d", sys->name, r);
@@ -34,6 +35,7 @@ void Sys8080_init(Sys8080 sys)
     Ctl8228_init(sys->ctl);
     Cpu8080_init(sys->cpu);
     Dec8080_init(sys->dec);
+    Sio8080_init(sys->sio);
 
     for (int r = 0; r < 4; ++r)
         Rom8316_init(sys->rom[r]);
@@ -58,6 +60,7 @@ void Sys8080_linked(Sys8080 sys)
     pCtl8228            ctl = sys->ctl;
     pCpu8080            cpu = sys->cpu;
     pDec8080            dec = sys->dec;
+    pSio8080            sio = sys->sio;
 
     Rom8316            *rom = sys->rom;
     Ram8107x8          *ram = sys->ram;
@@ -128,6 +131,11 @@ void Sys8080_linked(Sys8080 sys)
 
     EDGE_FALL(cpu->RESET, reset_fall, sys);
 
+    // connect SIO to selected I/O port
+    sio->Data = cpu->Data;
+    dec->devr[SIO_PORT] = sio->RD;
+    dec->devw[SIO_PORT] = sio->WR;
+
     // cpu->WAIT is not connected to anything.
     // cpu->INTE is not connected to anything.
     // cpu->INTA_ is not connected to anything.
@@ -141,6 +149,13 @@ void Sys8080_linked(Sys8080 sys)
         Rom8316_linked(rom[r]);
     for (int r = 0; r < 4; ++r)
         Ram8107x8_linked(ram[r]);
+
+    Sio8080_linked(sio);
+}
+
+void Sys8080_down(Sys8080 sys)
+{
+    Sio8080_down(sys->sio);
 }
 
 static void reset_fall(Sys8080 sys)

@@ -23,7 +23,7 @@ void Clock_bench()
 
     Tau                 max_iter = 1000;
     Tau                 t0, dt;
-    Tau                 mint = 25000000;
+    Tau                 mint = 2500000;
 
     while (1) {
         t0 = rtc_ns();
